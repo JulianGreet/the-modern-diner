@@ -1,0 +1,8 @@
+
+// Import the SignOutButton at the top of the file
+import SignOutButton from '@/components/auth/SignOutButton';
+
+// Add this to the bottom of the sidebar navigation list
+<div className="mt-auto pt-4 border-t">
+  <SignOutButton />
+</div>
