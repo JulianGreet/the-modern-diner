@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+                // Add our restaurant theme colors
+                restaurant: {
+                    burgundy: '#800020',
+                    cream: '#F5F5DC',
+                    charcoal: '#36454F',
+                    gold: '#D4AF37',
+                    lightgold: '#F8F0E3',
+                    success: '#2E8B57',
+                    warning: '#FF8C00',
+                    danger: '#B22222',
+                    available: '#43A047',
+                    occupied: '#E53935',
+                    reserved: '#1E88E5'
+                }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +99,16 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+                'pulse-subtle': {
+                    '0%, 100%': { opacity: '1' },
+                    '50%': { opacity: '0.7' }
+                }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+                'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite'
 			}
 		}
 	},
