@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +16,7 @@ import {
 interface OrderCardProps {
   order: Order;
   onViewDetails: (orderId: number) => void;
-  onUpdateStatus: (orderId: number, status: OrderStatus) => void;
+  onUpdateStatus: (status: OrderStatus) => void;
 }
 
 const getStatusColor = (status: OrderStatus): string => {
@@ -150,7 +149,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onUpdateSta
           <MoreHorizontal size={14} className="ml-1" />
         </Button>
         
-        {getNextStatusButton(order.status, (status) => onUpdateStatus(order.id, status))}
+        {getNextStatusButton(order.status, onUpdateStatus)}
       </CardFooter>
     </Card>
   );
