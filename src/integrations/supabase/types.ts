@@ -9,7 +9,231 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      menu_items: {
+        Row: {
+          available: boolean
+          category: string
+          course_type: string
+          created_at: string
+          description: string | null
+          id: number
+          name: string
+          preparation_time: number
+          price: number
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          category: string
+          course_type: string
+          created_at?: string
+          description?: string | null
+          id?: number
+          name: string
+          preparation_time: number
+          price: number
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          category?: string
+          course_type?: string
+          created_at?: string
+          description?: string | null
+          id?: number
+          name?: string
+          preparation_time?: number
+          price?: number
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          completed_at: string | null
+          course_type: string
+          created_at: string
+          id: number
+          menu_item_id: number | null
+          order_id: number
+          quantity: number
+          special_requests: string | null
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_type: string
+          created_at?: string
+          id?: number
+          menu_item_id?: number | null
+          order_id: number
+          quantity: number
+          special_requests?: string | null
+          started_at?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_type?: string
+          created_at?: string
+          id?: number
+          menu_item_id?: number | null
+          order_id?: number
+          quantity?: number
+          special_requests?: string | null
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_menu_item_id_fkey"
+            columns: ["menu_item_id"]
+            isOneToOne: false
+            referencedRelation: "menu_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: number
+          is_high_priority: boolean
+          restaurant_id: string
+          server_id: string | null
+          special_notes: string | null
+          status: string
+          table_id: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          is_high_priority?: boolean
+          restaurant_id: string
+          server_id?: string | null
+          special_notes?: string | null
+          status: string
+          table_id?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          is_high_priority?: boolean
+          restaurant_id?: string
+          server_id?: string | null
+          special_notes?: string | null
+          status?: string
+          table_id?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "tables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff: {
+        Row: {
+          active_orders: number[] | null
+          assigned_tables: number[] | null
+          created_at: string
+          id: string
+          name: string
+          restaurant_id: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          active_orders?: number[] | null
+          assigned_tables?: number[] | null
+          created_at?: string
+          id?: string
+          name: string
+          restaurant_id: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          active_orders?: number[] | null
+          assigned_tables?: number[] | null
+          created_at?: string
+          id?: string
+          name?: string
+          restaurant_id?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tables: {
+        Row: {
+          assigned_server: string | null
+          capacity: number
+          combined_with: number[] | null
+          created_at: string
+          current_order: number | null
+          id: number
+          name: string
+          restaurant_id: string
+          size: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_server?: string | null
+          capacity: number
+          combined_with?: number[] | null
+          created_at?: string
+          current_order?: number | null
+          id?: number
+          name: string
+          restaurant_id: string
+          size: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_server?: string | null
+          capacity?: number
+          combined_with?: number[] | null
+          created_at?: string
+          current_order?: number | null
+          id?: number
+          name?: string
+          restaurant_id?: string
+          size?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
