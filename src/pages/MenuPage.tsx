@@ -38,12 +38,14 @@ import { MenuItem } from '@/types/restaurant';
 import { fetchMenuItems, deleteMenuItem } from '@/services/supabase/menuService';
 import MenuForm from '@/components/menu/MenuForm';
 import { useToast } from '@/hooks/use-toast';
+import { useQueryErrorHandler } from '@/hooks/use-query-error-handler';
 
 const MenuPage: React.FC = () => {
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { handleError } = useQueryErrorHandler();
 
   const { data: menuItems = [], isLoading, error } = useQuery({
     queryKey: ['menuItems'],
@@ -59,14 +61,7 @@ const MenuPage: React.FC = () => {
         description: "The menu item has been removed successfully."
       });
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to delete menu item.",
-        variant: "destructive"
-      });
-      console.error("Delete error:", error);
-    }
+    onError: (error) => handleError(error, "Delete menu item")
   });
 
   const handleDelete = (itemId: number) => {
@@ -78,7 +73,6 @@ const MenuPage: React.FC = () => {
   const handleFormClose = () => {
     setIsAddingItem(false);
     setEditingItem(null);
-    queryClient.invalidateQueries({ queryKey: ['menuItems'] });
   };
 
   const getCourseTypeColor = (courseType: string) => {

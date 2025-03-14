@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/select";
 import { MenuItem, CourseType } from "@/types/restaurant";
 import { createMenuItem, updateMenuItem } from "@/services/supabase/menuService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryErrorHandler } from "@/hooks/use-query-error-handler";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -43,6 +45,8 @@ interface MenuFormProps {
 
 const MenuForm: React.FC<MenuFormProps> = ({ initialData, onSuccess }) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { handleError } = useQueryErrorHandler();
   const isEditing = !!initialData;
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,29 +70,38 @@ const MenuForm: React.FC<MenuFormProps> = ({ initialData, onSuccess }) => {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      if (isEditing && initialData) {
-        await updateMenuItem(initialData.id, values);
-        toast({
-          title: "Menu item updated",
-          description: `${values.name} has been updated successfully.`,
-        });
-      } else {
-        await createMenuItem(values);
-        toast({
-          title: "Menu item created",
-          description: `${values.name} has been added to the menu.`,
-        });
-      }
-      onSuccess();
-    } catch (error) {
-      console.error('Error saving menu item:', error);
+  const createMutation = useMutation({
+    mutationFn: createMenuItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
       toast({
-        title: "Error",
-        description: "There was an error saving the menu item.",
-        variant: "destructive",
+        title: "Menu item created",
+        description: "The menu item has been added successfully."
       });
+      onSuccess();
+    },
+    onError: (error) => handleError(error, "Create menu item")
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, ...data }: { id: number } & Partial<Omit<MenuItem, 'id'>>) => 
+      updateMenuItem(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['menuItems'] });
+      toast({
+        title: "Menu item updated",
+        description: "The menu item has been updated successfully."
+      });
+      onSuccess();
+    },
+    onError: (error) => handleError(error, "Update menu item")
+  });
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (isEditing && initialData) {
+      updateMutation.mutate({ id: initialData.id, ...values });
+    } else {
+      createMutation.mutate(values);
     }
   };
 
@@ -221,7 +234,7 @@ const MenuForm: React.FC<MenuFormProps> = ({ initialData, onSuccess }) => {
           <Button type="button" variant="outline" onClick={onSuccess}>
             Cancel
           </Button>
-          <Button type="submit">
+          <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
             {isEditing ? "Update Item" : "Create Item"}
           </Button>
         </div>

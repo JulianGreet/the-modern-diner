@@ -30,7 +30,6 @@ export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {
   const { data, error } = await supabase
     .from('menu_items')
     .insert({
-      restaurant_id: (await supabase.auth.getUser()).data.user?.id,
       name: menuItem.name,
       description: menuItem.description,
       price: menuItem.price,
@@ -61,8 +60,6 @@ export async function updateMenuItem(menuItemId: number, updates: Partial<Omit<M
   if (updates.courseType) dbUpdates.course_type = updates.courseType;
   if (updates.preparationTime !== undefined) dbUpdates.preparation_time = updates.preparationTime;
   if (updates.available !== undefined) dbUpdates.available = updates.available;
-  
-  dbUpdates.updated_at = new Date().toISOString();
   
   const { data, error } = await supabase
     .from('menu_items')
