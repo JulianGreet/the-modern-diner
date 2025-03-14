@@ -13,7 +13,16 @@ export async function fetchTables() {
     throw error;
   }
   
-  return data;
+  return data.map(table => ({
+    id: table.id,
+    name: table.name,
+    capacity: table.capacity,
+    status: table.status as TableStatus,
+    size: table.size as TableSize,
+    combinedWith: table.combined_with || null,
+    assignedServer: table.assigned_server,
+    currentOrder: table.current_order
+  }) as Table);
 }
 
 export async function createTable(table: Omit<Table, 'id'>) {
@@ -95,4 +104,3 @@ export async function updateCurrentOrder(tableId: number, orderId: number | null
   
   return data;
 }
-
