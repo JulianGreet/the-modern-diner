@@ -16,7 +16,7 @@ export interface Table {
   status: TableStatus;
   size: TableSize;
   combinedWith: number[] | null;
-  assignedServer: number | null;
+  assignedServer: string | null;
   currentOrder: number | null;
 }
 
@@ -47,7 +47,7 @@ export interface OrderItem {
 export interface Order {
   id: number;
   tableId: number;
-  serverId: number;
+  serverId: string | null;
   items: OrderItem[];
   status: OrderStatus;
   createdAt: Date;
@@ -57,7 +57,7 @@ export interface Order {
 }
 
 export interface Staff {
-  id: number;
+  id: string;
   name: string;
   role: UserRole;
   assignedTables: number[];
@@ -85,3 +85,4 @@ export interface Reservation {
   specialRequests: string;
   status: 'confirmed' | 'canceled' | 'seated' | 'no-show';
 }
+

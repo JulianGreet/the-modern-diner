@@ -46,16 +46,19 @@ export async function fetchOrders() {
 }
 
 export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
+  // Convert serverId from number to string if it exists
+  const serverIdAsString = order.serverId ? String(order.serverId) : null;
+  
   const { data, error } = await supabase
     .from('orders')
-    .insert([{
+    .insert({
       restaurant_id: (await supabase.auth.getUser()).data.user?.id,
       table_id: order.tableId,
-      server_id: order.serverId,
+      server_id: serverIdAsString,
       status: order.status,
       special_notes: order.specialNotes,
       is_high_priority: order.isHighPriority
-    }])
+    })
     .select()
     .single();
   
@@ -89,9 +92,11 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
 }
 
 export async function updateOrderStatus(orderId: number, status: OrderStatus) {
+  const updatedAt = new Date().toISOString();
+  
   const { data, error } = await supabase
     .from('orders')
-    .update({ status, updated_at: new Date() })
+    .update({ status, updated_at: updatedAt })
     .eq('id', orderId)
     .select()
     .single();
@@ -105,14 +110,23 @@ export async function updateOrderStatus(orderId: number, status: OrderStatus) {
 }
 
 export async function updateOrderItemStatus(itemId: number, status: OrderStatus) {
+  const now = new Date().toISOString();
+  const updates: any = { 
+    status, 
+    updated_at: now
+  };
+  
+  if (status === 'in-progress') {
+    updates.started_at = now;
+  }
+  
+  if (status === 'completed') {
+    updates.completed_at = now;
+  }
+  
   const { data, error } = await supabase
     .from('order_items')
-    .update({ 
-      status, 
-      updated_at: new Date(),
-      ...(status === 'in-progress' ? { started_at: new Date() } : {}),
-      ...(status === 'completed' ? { completed_at: new Date() } : {})
-    })
+    .update(updates)
     .eq('id', itemId)
     .select()
     .single();
@@ -124,3 +138,4 @@ export async function updateOrderItemStatus(itemId: number, status: OrderStatus)
   
   return data;
 }
+

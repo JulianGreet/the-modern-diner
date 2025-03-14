@@ -17,17 +17,20 @@ export async function fetchTables() {
 }
 
 export async function createTable(table: Omit<Table, 'id'>) {
+  // Convert assigned_server from number to string if it exists
+  const serverIdAsString = table.assignedServer ? String(table.assignedServer) : null;
+
   const { data, error } = await supabase
     .from('tables')
-    .insert([{
+    .insert({
       restaurant_id: (await supabase.auth.getUser()).data.user?.id,
       name: table.name,
       capacity: table.capacity,
       status: table.status,
       size: table.size,
       combined_with: table.combinedWith,
-      assigned_server: table.assignedServer
-    }])
+      assigned_server: serverIdAsString
+    })
     .select()
     .single();
   
@@ -40,9 +43,11 @@ export async function createTable(table: Omit<Table, 'id'>) {
 }
 
 export async function updateTableStatus(tableId: number, status: TableStatus) {
+  const updatedAt = new Date().toISOString();
+  
   const { data, error } = await supabase
     .from('tables')
-    .update({ status, updated_at: new Date() })
+    .update({ status, updated_at: updatedAt })
     .eq('id', tableId)
     .select()
     .single();
@@ -56,9 +61,11 @@ export async function updateTableStatus(tableId: number, status: TableStatus) {
 }
 
 export async function assignServerToTable(tableId: number, serverId: string | null) {
+  const updatedAt = new Date().toISOString();
+  
   const { data, error } = await supabase
     .from('tables')
-    .update({ assigned_server: serverId, updated_at: new Date() })
+    .update({ assigned_server: serverId, updated_at: updatedAt })
     .eq('id', tableId)
     .select()
     .single();
@@ -72,9 +79,11 @@ export async function assignServerToTable(tableId: number, serverId: string | nu
 }
 
 export async function updateCurrentOrder(tableId: number, orderId: number | null) {
+  const updatedAt = new Date().toISOString();
+  
   const { data, error } = await supabase
     .from('tables')
-    .update({ current_order: orderId, updated_at: new Date() })
+    .update({ current_order: orderId, updated_at: updatedAt })
     .eq('id', tableId)
     .select()
     .single();
@@ -86,3 +95,4 @@ export async function updateCurrentOrder(tableId: number, orderId: number | null
   
   return data;
 }
+
