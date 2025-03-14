@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem, CourseType } from "@/types/restaurant";
+import { useAuth } from "@/hooks/useAuth";
 
 export async function fetchMenuItems() {
   const { data, error } = await supabase
@@ -27,6 +28,10 @@ export async function fetchMenuItems() {
 }
 
 export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {
+  // Get the authenticated user's restaurant_id
+  // This is a placeholder - in a real app you would get this from auth context
+  const restaurant_id = "123e4567-e89b-12d3-a456-426614174000"; // Placeholder
+
   const { data, error } = await supabase
     .from('menu_items')
     .insert({
@@ -36,7 +41,8 @@ export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {
       category: menuItem.category,
       course_type: menuItem.courseType,
       preparation_time: menuItem.preparationTime,
-      available: menuItem.available
+      available: menuItem.available,
+      restaurant_id: restaurant_id
     })
     .select()
     .single();
