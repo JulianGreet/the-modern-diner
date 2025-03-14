@@ -85,4 +85,3 @@ export interface Reservation {
   specialRequests: string;
   status: 'confirmed' | 'canceled' | 'seated' | 'no-show';
 }
-
