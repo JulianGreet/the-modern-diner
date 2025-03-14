@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      customers: {
+        Row: {
+          allergies: string[] | null
+          created_at: string
+          email: string | null
+          id: number
+          last_visit: string | null
+          name: string
+          phone: string | null
+          preferences: string[] | null
+          restaurant_id: string
+          updated_at: string
+          visits: number
+        }
+        Insert: {
+          allergies?: string[] | null
+          created_at?: string
+          email?: string | null
+          id?: number
+          last_visit?: string | null
+          name: string
+          phone?: string | null
+          preferences?: string[] | null
+          restaurant_id: string
+          updated_at?: string
+          visits?: number
+        }
+        Update: {
+          allergies?: string[] | null
+          created_at?: string
+          email?: string | null
+          id?: number
+          last_visit?: string | null
+          name?: string
+          phone?: string | null
+          preferences?: string[] | null
+          restaurant_id?: string
+          updated_at?: string
+          visits?: number
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           available: boolean
@@ -158,6 +200,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          customer_id: number | null
+          customer_name: string
+          date: string
+          id: number
+          party_size: number
+          restaurant_id: string
+          special_requests: string | null
+          status: string
+          table_ids: number[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id?: number | null
+          customer_name: string
+          date: string
+          id?: number
+          party_size: number
+          restaurant_id: string
+          special_requests?: string | null
+          status: string
+          table_ids?: number[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: number | null
+          customer_name?: string
+          date?: string
+          id?: number
+          party_size?: number
+          restaurant_id?: string
+          special_requests?: string | null
+          status?: string
+          table_ids?: number[] | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       staff: {
         Row: {

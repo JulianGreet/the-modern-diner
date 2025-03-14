@@ -5,7 +5,7 @@ import { Reservation } from "@/types/restaurant";
 export async function fetchReservations() {
   const { data, error } = await supabase
     .from('reservations')
-    .select('*, customers(*)')
+    .select('*')
     .order('date');
   
   if (error) {
@@ -33,7 +33,7 @@ export async function fetchReservations() {
 export async function createReservation(reservation: Omit<Reservation, 'id'>) {
   const { data, error } = await supabase
     .from('reservations')
-    .insert([{
+    .insert({
       restaurant_id: (await supabase.auth.getUser()).data.user?.id,
       customer_id: reservation.customerId,
       customer_name: reservation.customerName,
@@ -42,7 +42,7 @@ export async function createReservation(reservation: Omit<Reservation, 'id'>) {
       table_ids: reservation.tableIds,
       special_requests: reservation.specialRequests,
       status: reservation.status
-    }])
+    })
     .select()
     .single();
   
@@ -57,7 +57,10 @@ export async function createReservation(reservation: Omit<Reservation, 'id'>) {
 export async function updateReservationStatus(reservationId: number, status: 'confirmed' | 'canceled' | 'seated' | 'no-show') {
   const { data, error } = await supabase
     .from('reservations')
-    .update({ status, updated_at: new Date() })
+    .update({ 
+      status, 
+      updated_at: new Date().toISOString() 
+    })
     .eq('id', reservationId)
     .select()
     .single();

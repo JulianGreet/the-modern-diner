@@ -11,6 +11,7 @@ import TablesPage from "./pages/TablesPage";
 import OrdersPage from "./pages/OrdersPage";
 import StaffPage from "./pages/StaffPage";
 import ReservationsPage from "./pages/ReservationsPage";
+import MenuPage from "./pages/MenuPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import AuthPage from "./pages/AuthPage";
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/staff" element={
               <ProtectedRoute>
                 <MainLayout><StaffPage /></MainLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/menu" element={
+              <ProtectedRoute>
+                <MainLayout><MenuPage /></MainLayout>
               </ProtectedRoute>
             } />
             <Route path="/reservations" element={

@@ -4,38 +4,35 @@ import { Staff, UserRole } from "@/types/restaurant";
 
 export async function fetchStaff() {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('staff')
     .select('*')
-    .order('role');
+    .order('name');
   
   if (error) {
     console.error('Error fetching staff:', error);
     throw error;
   }
   
-  // Transform Supabase data to match our frontend types
-  const staff = data.map(profile => {
-    return {
-      id: profile.id,
-      name: profile.restaurant_name || 'Unknown Staff',
-      role: profile.role as UserRole,
-      assignedTables: [], // We'll need to join with tables to get this
-      activeOrders: [] // We'll need to join with orders to get this
-    };
-  });
-  
-  return staff;
+  // Transform to frontend types
+  return data.map(staff => ({
+    id: staff.id,
+    name: staff.name,
+    role: staff.role as UserRole,
+    assignedTables: staff.assigned_tables || [],
+    activeOrders: staff.active_orders || []
+  })) as Staff[];
 }
 
-export async function createStaffMember(staff: Omit<Staff, 'id' | 'assignedTables' | 'activeOrders'>) {
-  // This would typically involve creating a user in auth and then a profile
-  // For now, we'll just create a profile (in a real app, you'd use Supabase auth APIs)
+export async function createStaffMember(staff: Omit<Staff, 'id'>) {
   const { data, error } = await supabase
-    .from('profiles')
-    .insert([{
-      restaurant_name: staff.name,
-      role: staff.role
-    }])
+    .from('staff')
+    .insert({
+      restaurant_id: (await supabase.auth.getUser()).data.user?.id,
+      name: staff.name,
+      role: staff.role,
+      assigned_tables: staff.assignedTables,
+      active_orders: staff.activeOrders
+    })
     .select()
     .single();
   
@@ -47,18 +44,41 @@ export async function createStaffMember(staff: Omit<Staff, 'id' | 'assignedTable
   return data;
 }
 
-export async function updateStaffRole(staffId: string, role: UserRole) {
+export async function updateStaff(staffId: string, updates: Partial<Omit<Staff, 'id'>>) {
+  const dbUpdates: any = {};
+  
+  if (updates.name) dbUpdates.name = updates.name;
+  if (updates.role) dbUpdates.role = updates.role;
+  if (updates.assignedTables) dbUpdates.assigned_tables = updates.assignedTables;
+  if (updates.activeOrders) dbUpdates.active_orders = updates.activeOrders;
+  
+  dbUpdates.updated_at = new Date().toISOString();
+  
   const { data, error } = await supabase
-    .from('profiles')
-    .update({ role, updated_at: new Date() })
+    .from('staff')
+    .update(dbUpdates)
     .eq('id', staffId)
     .select()
     .single();
   
   if (error) {
-    console.error('Error updating staff role:', error);
+    console.error('Error updating staff member:', error);
     throw error;
   }
   
   return data;
+}
+
+export async function deleteStaff(staffId: string) {
+  const { error } = await supabase
+    .from('staff')
+    .delete()
+    .eq('id', staffId);
+  
+  if (error) {
+    console.error('Error deleting staff member:', error);
+    throw error;
+  }
+  
+  return true;
 }
