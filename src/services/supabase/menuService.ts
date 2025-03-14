@@ -1,13 +1,12 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { MenuItem, CourseType } from "@/types/restaurant";
-import { useAuth } from "@/hooks/useAuth";
+import { MenuItem } from "@/types/restaurant";
 
 export async function fetchMenuItems() {
   const { data, error } = await supabase
     .from('menu_items')
     .select('*')
-    .order('name');
+    .order('category');
   
   if (error) {
     console.error('Error fetching menu items:', error);
@@ -21,28 +20,24 @@ export async function fetchMenuItems() {
     description: item.description || '',
     price: item.price,
     category: item.category,
-    courseType: item.course_type as CourseType,
+    courseType: item.course_type,
     preparationTime: item.preparation_time,
     available: item.available
   })) as MenuItem[];
 }
 
 export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {
-  // Get the authenticated user's restaurant_id
-  // This is a placeholder - in a real app you would get this from auth context
-  const restaurant_id = "123e4567-e89b-12d3-a456-426614174000"; // Placeholder
-
   const { data, error } = await supabase
     .from('menu_items')
     .insert({
+      restaurant_id: (await supabase.auth.getUser()).data.user?.id,
       name: menuItem.name,
       description: menuItem.description,
       price: menuItem.price,
       category: menuItem.category,
       course_type: menuItem.courseType,
       preparation_time: menuItem.preparationTime,
-      available: menuItem.available,
-      restaurant_id: restaurant_id
+      available: menuItem.available
     })
     .select()
     .single();
@@ -56,16 +51,17 @@ export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {
 }
 
 export async function updateMenuItem(menuItemId: number, updates: Partial<Omit<MenuItem, 'id'>>) {
-  // Transform frontend properties to database column names
   const dbUpdates: any = {};
   
-  if (updates.name) dbUpdates.name = updates.name;
+  if (updates.name !== undefined) dbUpdates.name = updates.name;
   if (updates.description !== undefined) dbUpdates.description = updates.description;
   if (updates.price !== undefined) dbUpdates.price = updates.price;
-  if (updates.category) dbUpdates.category = updates.category;
-  if (updates.courseType) dbUpdates.course_type = updates.courseType;
+  if (updates.category !== undefined) dbUpdates.category = updates.category;
+  if (updates.courseType !== undefined) dbUpdates.course_type = updates.courseType;
   if (updates.preparationTime !== undefined) dbUpdates.preparation_time = updates.preparationTime;
   if (updates.available !== undefined) dbUpdates.available = updates.available;
+  
+  dbUpdates.updated_at = new Date().toISOString();
   
   const { data, error } = await supabase
     .from('menu_items')

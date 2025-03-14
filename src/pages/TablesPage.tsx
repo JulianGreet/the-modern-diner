@@ -27,7 +27,7 @@ const TablesPage: React.FC = () => {
           id: table.id,
           name: table.name,
           capacity: table.capacity,
-          status: table.status,
+          status: table.status as TableStatus,
           size: table.size,
           combinedWith: table.combined_with || null,
           assignedServer: table.assigned_server || null,
@@ -82,11 +82,9 @@ const TablesPage: React.FC = () => {
     }
   };
 
-  const handleAssignServer = async (tableId: number, serverId: number) => {
+  const handleAssignServer = async (tableId: number, serverId: string) => {
     try {
-      // Convert number to string as our database expects a UUID
-      const serverUuid = mockStaff.find(s => s.id === serverId)?.id.toString() || null;
-      await assignServerToTable(tableId, serverUuid);
+      await assignServerToTable(tableId, serverId);
       
       setTables(prev => 
         prev.map(table => 

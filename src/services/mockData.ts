@@ -1,4 +1,3 @@
-
 import { 
   Table, 
   Staff, 
@@ -17,7 +16,7 @@ export const mockTables: Table[] = [
     status: 'available',
     size: 'small',
     combinedWith: null,
-    assignedServer: 1,
+    assignedServer: '1',
     currentOrder: null
   },
   {
@@ -27,7 +26,7 @@ export const mockTables: Table[] = [
     status: 'occupied',
     size: 'small',
     combinedWith: null,
-    assignedServer: 1,
+    assignedServer: '1',
     currentOrder: 1
   },
   {
@@ -47,7 +46,7 @@ export const mockTables: Table[] = [
     status: 'reserved',
     size: 'medium',
     combinedWith: null,
-    assignedServer: 2,
+    assignedServer: '2',
     currentOrder: null
   },
   {
@@ -67,7 +66,7 @@ export const mockTables: Table[] = [
     status: 'occupied',
     size: 'large',
     combinedWith: null,
-    assignedServer: 2,
+    assignedServer: '2',
     currentOrder: 2
   },
   {
@@ -97,7 +96,7 @@ export const mockTables: Table[] = [
     status: 'occupied',
     size: 'booth',
     combinedWith: null,
-    assignedServer: 3,
+    assignedServer: '3',
     currentOrder: 3
   },
 ];
@@ -105,42 +104,42 @@ export const mockTables: Table[] = [
 // Create staff
 export const mockStaff: Staff[] = [
   {
-    id: 1,
+    id: '1',
     name: 'John Smith',
     role: 'server',
     assignedTables: [1, 2],
     activeOrders: [1]
   },
   {
-    id: 2,
+    id: '2',
     name: 'Sarah Johnson',
     role: 'server',
     assignedTables: [4, 6],
     activeOrders: [2]
   },
   {
-    id: 3,
+    id: '3',
     name: 'Michael Brown',
     role: 'server',
     assignedTables: [9],
     activeOrders: [3]
   },
   {
-    id: 4,
+    id: '4',
     name: 'Jessica Davis',
     role: 'host',
     assignedTables: [],
     activeOrders: []
   },
   {
-    id: 5,
+    id: '5',
     name: 'David Wilson',
     role: 'kitchen',
     assignedTables: [],
     activeOrders: [1, 2, 3]
   },
   {
-    id: 6,
+    id: '6',
     name: 'Amanda Martinez',
     role: 'manager',
     assignedTables: [],
@@ -217,7 +216,7 @@ export const mockOrders: Order[] = [
   {
     id: 1,
     tableId: 2,
-    serverId: 1,
+    serverId: '1',
     items: [
       {
         id: 1,
@@ -253,7 +252,7 @@ export const mockOrders: Order[] = [
   {
     id: 2,
     tableId: 6,
-    serverId: 2,
+    serverId: '2',
     items: [
       {
         id: 3,
@@ -289,7 +288,7 @@ export const mockOrders: Order[] = [
   {
     id: 3,
     tableId: 9,
-    serverId: 3,
+    serverId: '3',
     items: [
       {
         id: 5,

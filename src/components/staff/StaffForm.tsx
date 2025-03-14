@@ -52,14 +52,19 @@ const StaffForm: React.FC<StaffFormProps> = ({ initialData, onSuccess }) => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && initialData) {
-        await updateStaff(initialData.id, values);
+        await updateStaff(initialData.id, {
+          ...values,
+          assignedTables: initialData.assignedTables,
+          activeOrders: initialData.activeOrders
+        });
         toast({
           title: "Staff member updated",
           description: `${values.name} has been updated successfully.`,
         });
       } else {
         await createStaffMember({
-          ...values,
+          name: values.name, // Making sure name is explicitly provided
+          role: values.role,
           assignedTables: [],
           activeOrders: []
         });
