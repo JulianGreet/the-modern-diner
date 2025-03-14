@@ -8,6 +8,7 @@ import TableActionDialog from '@/components/tables/TableActionDialog';
 import { Table, TableStatus } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 import { fetchTables, updateTableStatus, assignServerToTable, updateCurrentOrder } from '@/services/supabase/tableService';
+import { LayoutGrid, Users, Circle, Ban } from 'lucide-react';
 
 const TablesPage: React.FC = () => {
   const [tables, setTables] = useState<Table[]>([]);
@@ -149,30 +150,60 @@ const TablesPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Table Management</h1>
-        <Button>Configure Floor Plan</Button>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-medium text-gray-700">Table Overview</h2>
+        <Button className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90">
+          Configure Floor Plan
+        </Button>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="p-4 bg-restaurant-available/10 border-restaurant-available">
-          <div className="text-3xl font-bold text-restaurant-available">{availableTables}</div>
-          <div className="text-sm text-muted-foreground">Available Tables</div>
+        <Card className="p-4 bg-green-50 border-green-200">
+          <div className="flex items-center">
+            <div className="rounded-full bg-green-100 p-2 mr-3">
+              <Circle className="h-6 w-6 text-green-600 fill-green-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-green-600">{availableTables}</div>
+              <div className="text-sm text-green-700">Available Tables</div>
+            </div>
+          </div>
         </Card>
         
-        <Card className="p-4 bg-restaurant-occupied/10 border-restaurant-occupied">
-          <div className="text-3xl font-bold text-restaurant-occupied">{occupiedTables}</div>
-          <div className="text-sm text-muted-foreground">Occupied Tables</div>
+        <Card className="p-4 bg-red-50 border-red-200">
+          <div className="flex items-center">
+            <div className="rounded-full bg-red-100 p-2 mr-3">
+              <Users className="h-6 w-6 text-red-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-red-600">{occupiedTables}</div>
+              <div className="text-sm text-red-700">Occupied Tables</div>
+            </div>
+          </div>
         </Card>
         
-        <Card className="p-4 bg-restaurant-reserved/10 border-restaurant-reserved">
-          <div className="text-3xl font-bold text-restaurant-reserved">{reservedTables}</div>
-          <div className="text-sm text-muted-foreground">Reserved Tables</div>
+        <Card className="p-4 bg-blue-50 border-blue-200">
+          <div className="flex items-center">
+            <div className="rounded-full bg-blue-100 p-2 mr-3">
+              <Clock className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-blue-600">{reservedTables}</div>
+              <div className="text-sm text-blue-700">Reserved Tables</div>
+            </div>
+          </div>
         </Card>
         
-        <Card className="p-4 bg-yellow-500/10 border-yellow-500">
-          <div className="text-3xl font-bold text-yellow-500">{cleaningTables}</div>
-          <div className="text-sm text-muted-foreground">Cleaning Tables</div>
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <div className="flex items-center">
+            <div className="rounded-full bg-yellow-100 p-2 mr-3">
+              <Ban className="h-6 w-6 text-yellow-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-yellow-600">{cleaningTables}</div>
+              <div className="text-sm text-yellow-700">Cleaning Tables</div>
+            </div>
+          </div>
         </Card>
       </div>
       

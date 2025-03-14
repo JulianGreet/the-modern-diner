@@ -1,38 +1,12 @@
-
-import React, { useState } from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger
-} from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { Table, Staff, TableStatus } from '@/types/restaurant';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Table, TableStatus } from '@/types/restaurant';
+import { Staff } from '@/types/restaurant';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Users,
-  Timer,
-  ClipboardCheck,
-  AlertCircle,
-  UserCheck,
-  Utensils
-} from 'lucide-react';
+import { Clock, Users, Utensils, Ban, CheckCircle2 } from 'lucide-react';
 
 interface TableActionDialogProps {
   table: Table | null;
@@ -40,7 +14,7 @@ interface TableActionDialogProps {
   onOpenChange: (open: boolean) => void;
   servers: Staff[];
   onUpdateTableStatus: (tableId: number, status: TableStatus) => void;
-  onAssignServer: (tableId: number, serverId: number) => void;
+  onAssignServer: (tableId: number, serverId: string) => void;
   onCreateOrder: (tableId: number) => void;
 }
 
@@ -53,210 +27,174 @@ const TableActionDialog: React.FC<TableActionDialogProps> = ({
   onAssignServer,
   onCreateOrder
 }) => {
-  const [activeTab, setActiveTab] = useState('info');
-  const [selectedServerId, setSelectedServerId] = useState<string>('');
-  const [specialNotes, setSpecialNotes] = useState('');
-  
   if (!table) return null;
-  
-  const availableServers = servers.filter(server => server.role === 'server');
-  
-  const handleStatusChange = (status: TableStatus) => {
-    if (table) {
-      onUpdateTableStatus(table.id, status);
+
+  const getStatusBadge = (status: TableStatus) => {
+    switch (status) {
+      case 'available':
+        return <Badge className="bg-green-500">Available</Badge>;
+      case 'occupied':
+        return <Badge className="bg-red-500">Occupied</Badge>;
+      case 'reserved':
+        return <Badge className="bg-blue-500">Reserved</Badge>;
+      case 'cleaning':
+        return <Badge className="bg-yellow-500">Cleaning</Badge>;
+      default:
+        return <Badge>Unknown</Badge>;
     }
   };
-  
-  const handleServerAssign = () => {
-    if (table && selectedServerId) {
-      onAssignServer(table.id, parseInt(selectedServerId));
-      setSelectedServerId('');
+
+  const getStatusIcon = (status: TableStatus) => {
+    switch (status) {
+      case 'available':
+        return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'occupied':
+        return <Users className="h-5 w-5 text-red-500" />;
+      case 'reserved':
+        return <Clock className="h-5 w-5 text-blue-500" />;
+      case 'cleaning':
+        return <Ban className="h-5 w-5 text-yellow-500" />;
+      default:
+        return null;
     }
   };
-  
-  const handleCreateOrder = () => {
-    if (table) {
-      onCreateOrder(table.id);
-      onOpenChange(false);
-    }
-  };
-  
-  const assignedServer = table.assignedServer 
-    ? servers.find(s => s.id === table.assignedServer)
-    : null;
-  
+
+  const assignedServer = servers.find(s => s.id === table.assignedServer);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
+          <DialogTitle className="flex items-center gap-2">
             <span>Table {table.name}</span>
-            <Badge className={
-              table.status === 'available' ? 'bg-restaurant-available' :
-              table.status === 'occupied' ? 'bg-restaurant-occupied' :
-              table.status === 'reserved' ? 'bg-restaurant-reserved' :
-              'bg-yellow-500'
-            }>
-              {table.status.charAt(0).toUpperCase() + table.status.slice(1)}
-            </Badge>
+            {getStatusBadge(table.status)}
           </DialogTitle>
         </DialogHeader>
-        
-        <Tabs defaultValue="info" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3">
-            <TabsTrigger value="info">Info</TabsTrigger>
-            <TabsTrigger value="status">Status</TabsTrigger>
-            <TabsTrigger value="order">Order</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="info" className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Capacity</label>
-                <div className="flex items-center">
-                  <Users size={16} className="mr-2 text-muted-foreground" />
-                  <span>{table.capacity} people</span>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Size</label>
-                <span className="capitalize">{table.size}</span>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Capacity</Label>
+              <div className="flex items-center gap-1">
+                <Users className="h-4 w-4 text-muted-foreground" />
+                <span>{table.capacity} people</span>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Assigned Server</label>
-              {assignedServer ? (
-                <div className="flex items-center">
-                  <UserCheck size={16} className="mr-2 text-restaurant-success" />
-                  <span>{assignedServer.name}</span>
-                </div>
-              ) : (
-                <div className="flex items-center text-muted-foreground">
-                  <AlertCircle size={16} className="mr-2" />
-                  <span>No server assigned</span>
-                </div>
-              )}
-            </div>
-            
-            {table.currentOrder && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Current Order</label>
-                <div className="flex items-center">
-                  <ClipboardCheck size={16} className="mr-2 text-restaurant-burgundy" />
-                  <span>Order #{table.currentOrder}</span>
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="status" className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Change Status</label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant={table.status === 'available' ? 'default' : 'outline'}
-                  className={table.status === 'available' ? 'bg-restaurant-available' : ''}
-                  onClick={() => handleStatusChange('available')}
-                >
-                  Available
-                </Button>
-                <Button 
-                  variant={table.status === 'reserved' ? 'default' : 'outline'}
-                  className={table.status === 'reserved' ? 'bg-restaurant-reserved' : ''}
-                  onClick={() => handleStatusChange('reserved')}
-                >
-                  Reserved
-                </Button>
-                <Button 
-                  variant={table.status === 'occupied' ? 'default' : 'outline'}
-                  className={table.status === 'occupied' ? 'bg-restaurant-occupied' : ''}
-                  onClick={() => handleStatusChange('occupied')}
-                >
-                  Occupied
-                </Button>
-                <Button 
-                  variant={table.status === 'cleaning' ? 'default' : 'outline'}
-                  className={table.status === 'cleaning' ? 'bg-yellow-500' : ''}
-                  onClick={() => handleStatusChange('cleaning')}
-                >
-                  Cleaning
-                </Button>
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Status</Label>
+              <div className="flex items-center gap-1">
+                {getStatusIcon(table.status)}
+                <span className="capitalize">{table.status}</span>
               </div>
             </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Assign Server</label>
-              <div className="flex space-x-2">
-                <Select value={selectedServerId} onValueChange={setSelectedServerId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select server" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableServers.map(server => (
-                      <SelectItem key={server.id} value={server.id.toString()}>
-                        {server.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleServerAssign} disabled={!selectedServerId}>
-                  Assign
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Special Notes</label>
-              <Textarea 
-                placeholder="Add any special notes for this table"
-                value={specialNotes}
-                onChange={(e) => setSpecialNotes(e.target.value)}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="order" className="space-y-4 pt-4">
-            {table.currentOrder ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ClipboardCheck size={20} className="mr-2 text-restaurant-burgundy" />
-                    <span className="text-lg font-medium">Order #{table.currentOrder}</span>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    View Details
-                  </Button>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Order Actions</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline">
-                      <Timer size={16} className="mr-2" />
-                      Check Status
-                    </Button>
-                    <Button variant="outline">
-                      <Utensils size={16} className="mr-2" />
-                      Add Items
-                    </Button>
-                  </div>
-                </div>
-              </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <Label className="text-sm text-muted-foreground">Assigned Server</Label>
+            {table.status !== 'cleaning' ? (
+              <Select
+                defaultValue={table.assignedServer || ''}
+                onValueChange={(value) => onAssignServer(table.id, value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Assign a server" />
+                </SelectTrigger>
+                <SelectContent>
+                  {servers.map((server) => (
+                    <SelectItem key={server.id} value={server.id}>
+                      {server.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
-              <div className="space-y-4">
-                <div className="bg-muted rounded-md p-4 text-center">
-                  <p className="mb-2">No active order for this table</p>
-                  <Button onClick={handleCreateOrder}>
-                    Create New Order
-                  </Button>
-                </div>
-              </div>
+              <div className="text-muted-foreground">Cannot assign server while table is being cleaned</div>
             )}
-          </TabsContent>
-        </Tabs>
-        
+          </div>
+
+          {table.status === 'available' && (
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Actions</Label>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => onUpdateTableStatus(table.id, 'reserved')}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  Reserve
+                </Button>
+                <Button 
+                  className="flex-1 bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
+                  onClick={() => onCreateOrder(table.id)}
+                >
+                  <Utensils className="mr-2 h-4 w-4" />
+                  New Order
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {table.status === 'occupied' && (
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Current Order</Label>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  <Utensils className="mr-2 h-4 w-4" />
+                  View Order #{table.currentOrder}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => onUpdateTableStatus(table.id, 'cleaning')}
+                >
+                  <Ban className="mr-2 h-4 w-4" />
+                  Mark as Cleaning
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {table.status === 'reserved' && (
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Actions</Label>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => onUpdateTableStatus(table.id, 'available')}
+                >
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Mark as Available
+                </Button>
+                <Button 
+                  className="flex-1 bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
+                  onClick={() => onCreateOrder(table.id)}
+                >
+                  <Utensils className="mr-2 h-4 w-4" />
+                  Seat Guests
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {table.status === 'cleaning' && (
+            <div className="flex flex-col gap-1">
+              <Label className="text-sm text-muted-foreground">Actions</Label>
+              <Button 
+                className="bg-green-600 hover:bg-green-700"
+                onClick={() => onUpdateTableStatus(table.id, 'available')}
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                Mark as Available
+              </Button>
+            </div>
+          )}
+        </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
