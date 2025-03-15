@@ -7,7 +7,7 @@ import TableGrid from '@/components/tables/TableGrid';
 import TableActionDialog from '@/components/tables/TableActionDialog';
 import AddTableDialog from '@/components/tables/AddTableDialog';
 import TableQRCode from '@/components/tables/TableQRCode';
-import { Table, TableStatus, TableSize } from '@/types/restaurant';
+import { Table, TableStatus } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 import { fetchTables, updateTableStatus, assignServerToTable, updateCurrentOrder, createTable, deleteTable } from '@/services/supabase/tableService';
 import { LayoutGrid, Users, Circle, Ban, Clock, Plus, QrCode, Trash2 } from 'lucide-react';

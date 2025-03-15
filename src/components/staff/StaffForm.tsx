@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 import { Staff, UserRole } from "@/types/restaurant";
 import { createStaffMember, updateStaff } from "@/services/supabase/staffService";
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -37,7 +36,6 @@ interface StaffFormProps {
 
 const StaffForm: React.FC<StaffFormProps> = ({ initialData, onSuccess }) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const isEditing = !!initialData;
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,45 +49,31 @@ const StaffForm: React.FC<StaffFormProps> = ({ initialData, onSuccess }) => {
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: createStaffMember,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      toast({
-        title: "Staff member created",
-        description: `Staff member has been added successfully.`,
-      });
-      onSuccess();
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data: Staff) => updateStaff(data.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staff'] });
-      toast({
-        title: "Staff member updated",
-        description: `Staff member has been updated successfully.`,
-      });
-      onSuccess();
-    },
-  });
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && initialData) {
-        await updateMutation.mutate({
-          ...initialData,
+        await updateStaff(initialData.id, {
           ...values,
+          assignedTables: initialData.assignedTables,
+          activeOrders: initialData.activeOrders
+        });
+        toast({
+          title: "Staff member updated",
+          description: `${values.name} has been updated successfully.`,
         });
       } else {
-        await createMutation.mutate({
-          name: values.name,
+        await createStaffMember({
+          name: values.name, // Making sure name is explicitly provided
           role: values.role,
           assignedTables: [],
           activeOrders: []
         });
+        toast({
+          title: "Staff member created",
+          description: `${values.name} has been added as ${values.role}.`,
+        });
       }
+      onSuccess();
     } catch (error) {
       console.error('Error saving staff member:', error);
       toast({
@@ -149,7 +133,7 @@ const StaffForm: React.FC<StaffFormProps> = ({ initialData, onSuccess }) => {
           <Button type="button" variant="outline" onClick={onSuccess}>
             Cancel
           </Button>
-          <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+          <Button type="submit">
             {isEditing ? "Update Staff" : "Add Staff"}
           </Button>
         </div>

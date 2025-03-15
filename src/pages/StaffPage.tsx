@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertCircle, Pencil, Plus, Trash2, UserPlus, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -154,43 +154,41 @@ function StaffPage() {
 
         <TabsContent value={selectedRole}>
           {filteredStaff && filteredStaff.length > 0 ? (
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Assigned Tables</TableHead>
-                    <TableHead>Actions</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Assigned Tables</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStaff.map((staff) => (
+                  <TableRow key={staff.id}>
+                    <TableCell className="font-medium">{staff.name}</TableCell>
+                    <TableCell>
+                      <Badge className={getRoleBadgeColor(staff.role)}>
+                        {staff.role.charAt(0).toUpperCase() + staff.role.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {staff.assignedTables && staff.assignedTables.length > 0 
+                        ? staff.assignedTables.join(', ') 
+                        : 'None'}
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button variant="outline" size="icon" onClick={() => handleEditStaff(staff)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="icon" className="text-red-500" onClick={() => handleDeleteStaff(staff.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStaff.map((staffMember) => (
-                    <TableRow key={staffMember.id}>
-                      <TableCell className="font-medium">{staffMember.name}</TableCell>
-                      <TableCell>
-                        <Badge className={getRoleBadgeColor(staffMember.role)}>
-                          {staffMember.role.charAt(0).toUpperCase() + staffMember.role.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {staffMember.assignedTables && staffMember.assignedTables.length > 0 
-                          ? staffMember.assignedTables.join(', ') 
-                          : 'None'}
-                      </TableCell>
-                      <TableCell className="flex gap-2">
-                        <Button variant="outline" size="icon" onClick={() => handleEditStaff(staffMember)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" className="text-red-500" onClick={() => handleDeleteStaff(staffMember.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           ) : (
             <Card>
               <CardContent className="pt-6 flex flex-col items-center text-center">
