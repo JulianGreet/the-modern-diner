@@ -104,3 +104,41 @@ export async function updateCurrentOrder(tableId: number, orderId: number | null
   
   return data;
 }
+
+export async function deleteTable(tableId: number) {
+  const { error } = await supabase
+    .from('tables')
+    .delete()
+    .eq('id', tableId);
+  
+  if (error) {
+    console.error('Error deleting table:', error);
+    throw error;
+  }
+  
+  return true;
+}
+
+export async function getTableById(tableId: number) {
+  const { data, error } = await supabase
+    .from('tables')
+    .select('*')
+    .eq('id', tableId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching table:', error);
+    throw error;
+  }
+  
+  return {
+    id: data.id,
+    name: data.name,
+    capacity: data.capacity,
+    status: data.status as TableStatus,
+    size: data.size as TableSize,
+    combinedWith: data.combined_with || null,
+    assignedServer: data.assigned_server,
+    currentOrder: data.current_order
+  } as Table;
+}

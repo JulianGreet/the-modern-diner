@@ -1,20 +1,27 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { mockStaff } from '@/services/mockData';
 import TableGrid from '@/components/tables/TableGrid';
 import TableActionDialog from '@/components/tables/TableActionDialog';
+import AddTableDialog from '@/components/tables/AddTableDialog';
+import TableQRCode from '@/components/tables/TableQRCode';
 import { Table, TableStatus } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
-import { fetchTables, updateTableStatus, assignServerToTable, updateCurrentOrder } from '@/services/supabase/tableService';
-import { LayoutGrid, Users, Circle, Ban, Clock } from 'lucide-react';
+import { fetchTables, updateTableStatus, assignServerToTable, updateCurrentOrder, createTable, deleteTable } from '@/services/supabase/tableService';
+import { LayoutGrid, Users, Circle, Ban, Clock, Plus, QrCode, Trash2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TablesPage: React.FC = () => {
   const [tables, setTables] = useState<Table[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadTables = async () => {
@@ -138,6 +145,68 @@ const TablesPage: React.FC = () => {
     }
   };
 
+  const handleAddTable = async (tableData: any) => {
+    try {
+      const newTable = {
+        ...tableData,
+        combinedWith: null,
+        assignedServer: null,
+        currentOrder: null
+      };
+      
+      const createdTable = await createTable(newTable);
+      
+      setTables(prev => [...prev, {
+        id: createdTable.id,
+        name: createdTable.name,
+        capacity: createdTable.capacity,
+        status: createdTable.status as TableStatus,
+        size: createdTable.size as TableSize,
+        combinedWith: null,
+        assignedServer: null,
+        currentOrder: null
+      }]);
+      
+      toast({
+        title: 'Table Added',
+        description: `${createdTable.name} has been added successfully.`,
+      });
+    } catch (error) {
+      console.error('Failed to add table:', error);
+      toast({
+        title: 'Error Adding Table',
+        description: 'Could not add a new table.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleShowQRCode = (tableId: number) => {
+    const table = tables.find(t => t.id === tableId) || null;
+    setSelectedTable(table);
+    setQrDialogOpen(true);
+  };
+
+  const handleDeleteTable = async (tableId: number) => {
+    try {
+      await deleteTable(tableId);
+      
+      setTables(prev => prev.filter(table => table.id !== tableId));
+      
+      toast({
+        title: 'Table Deleted',
+        description: `Table has been deleted successfully.`,
+      });
+    } catch (error) {
+      console.error('Failed to delete table:', error);
+      toast({
+        title: 'Error Deleting Table',
+        description: 'Could not delete the table.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const availableTables = tables.filter(t => t.status === 'available').length;
   const occupiedTables = tables.filter(t => t.status === 'occupied').length;
   const reservedTables = tables.filter(t => t.status === 'reserved').length;
@@ -147,9 +216,19 @@ const TablesPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-medium text-gray-700">Table Overview</h2>
-        <Button className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90">
-          Configure Floor Plan
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Table
+          </Button>
+          <Button className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90">
+            Configure Floor Plan
+          </Button>
+        </div>
       </div>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -207,7 +286,12 @@ const TablesPage: React.FC = () => {
           <p className="text-muted-foreground">Loading tables...</p>
         </div>
       ) : (
-        <TableGrid tables={tables} onTableClick={handleTableClick} />
+        <TableGrid 
+          tables={tables} 
+          onTableClick={handleTableClick} 
+          onShowQRCode={handleShowQRCode}
+          onDeleteTable={handleDeleteTable}
+        />
       )}
       
       <TableActionDialog 
@@ -218,6 +302,19 @@ const TablesPage: React.FC = () => {
         onUpdateTableStatus={handleUpdateTableStatus}
         onAssignServer={handleAssignServer}
         onCreateOrder={handleCreateOrder}
+      />
+      
+      <AddTableDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onAddTable={handleAddTable}
+      />
+      
+      <TableQRCode
+        table={selectedTable}
+        open={qrDialogOpen}
+        onOpenChange={setQrDialogOpen}
+        restaurantId={user?.id}
       />
     </div>
   );

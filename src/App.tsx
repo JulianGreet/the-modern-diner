@@ -1,80 +1,62 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import MainLayout from "./components/layout/MainLayout";
-import TablesPage from "./pages/TablesPage";
-import OrdersPage from "./pages/OrdersPage";
-import StaffPage from "./pages/StaffPage";
-import ReservationsPage from "./pages/ReservationsPage";
-import MenuPage from "./pages/MenuPage";
-import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
-import AuthPage from "./pages/AuthPage";
-import NotFound from "./pages/NotFound";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthPage from '@/pages/AuthPage';
+import MainLayout from '@/components/layout/MainLayout';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import TablesPage from '@/pages/TablesPage';
+import MenuPage from '@/pages/MenuPage';
+import OrdersPage from '@/pages/OrdersPage';
+import ReservationsPage from '@/pages/ReservationsPage';
+import StaffPage from '@/pages/StaffPage';
+import ReportsPage from '@/pages/ReportsPage';
+import SettingsPage from '@/pages/SettingsPage';
+import Index from '@/pages/Index';
+import NotFound from '@/pages/NotFound';
+import OrderPage from '@/pages/OrderPage';
+import { AuthContextProvider } from '@/contexts/AuthContext';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/components/ui/theme-provider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { queryErrorHandler } from '@/hooks/use-query-error-handler';
 
-const queryClient = new QueryClient();
+import './App.css';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            {/* Public route */}
-            <Route path="/auth" element={<AuthPage />} />
-            
-            {/* Protected routes */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <MainLayout><TablesPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/orders" element={
-              <ProtectedRoute>
-                <MainLayout><OrdersPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/staff" element={
-              <ProtectedRoute>
-                <MainLayout><StaffPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/menu" element={
-              <ProtectedRoute>
-                <MainLayout><MenuPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reservations" element={
-              <ProtectedRoute>
-                <MainLayout><ReservationsPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/reports" element={
-              <ProtectedRoute>
-                <MainLayout><ReportsPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <MainLayout><SettingsPage /></MainLayout>
-              </ProtectedRoute>
-            } />
-            
-            {/* 404 and root redirects */}
-            <Route path="/index" element={<Navigate to="/" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      onError: queryErrorHandler,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthContextProvider>
+        <ThemeProvider defaultTheme="light" storageKey="restaurant-theme">
+          <Router>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/order/:restaurantId/:tableId" element={<OrderPage />} />
+              <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                <Route path="/tables" element={<TablesPage />} />
+                <Route path="/menu" element={<MenuPage />} />
+                <Route path="/orders" element={<OrdersPage />} />
+                <Route path="/reservations" element={<ReservationsPage />} />
+                <Route path="/staff" element={<StaffPage />} />
+                <Route path="/reports" element={<ReportsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Router>
+          <Toaster position="top-right" />
+        </ThemeProvider>
+      </AuthContextProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
