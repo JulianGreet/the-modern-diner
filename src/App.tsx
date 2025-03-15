@@ -28,11 +28,6 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      onError: (error) => {
-        if (error instanceof Error) {
-          queryErrorHandler(error);
-        }
-      },
     },
     mutations: {
       onError: (error) => {

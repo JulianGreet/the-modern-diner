@@ -17,11 +17,11 @@ export function useQueryErrorHandler() {
   return { handleError };
 }
 
-// For backward compatibility with existing code
+// For global error handling without requiring the hook in component context
 export const queryErrorHandler = (error: Error) => {
   console.error("Query error:", error);
   
-  // Use the toast function directly for global error handling
+  // Since we're outside a component context, we need to import and call toast directly
   const { toast } = useToast();
   toast({
     title: "Error",
