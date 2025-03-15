@@ -20,6 +20,12 @@ export function useQueryErrorHandler() {
 // For backward compatibility with existing code
 export const queryErrorHandler = (error: Error) => {
   console.error("Query error:", error);
-  // This function will be used as a fallback for existing code
-  // The useQueryErrorHandler hook should be preferred going forward
+  
+  // Use the toast function directly for global error handling
+  const { toast } = useToast();
+  toast({
+    title: "Error",
+    description: `An error occurred: ${error.message || "Unknown error"}`,
+    variant: "destructive",
+  });
 };

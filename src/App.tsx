@@ -18,17 +18,26 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useQueryErrorHandler } from '@/hooks/use-query-error-handler';
+import { queryErrorHandler } from '@/hooks/use-query-error-handler';
 
 import './App.css';
 
+// Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      meta: {
-        onError: () => {
-          const { handleError } = useQueryErrorHandler();
-          return handleError;
+      retry: 1,
+      refetchOnWindowFocus: false,
+      onError: (error) => {
+        if (error instanceof Error) {
+          queryErrorHandler(error);
+        }
+      },
+    },
+    mutations: {
+      onError: (error) => {
+        if (error instanceof Error) {
+          queryErrorHandler(error);
         }
       },
     },
@@ -45,7 +54,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/order/:restaurantId/:tableId" element={<OrderPage />} />
-              <Route element={<ProtectedRoute><MainLayout>Main content</MainLayout></ProtectedRoute>}>
+              <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/orders" element={<OrdersPage />} />

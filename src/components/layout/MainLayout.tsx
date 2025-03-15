@@ -1,12 +1,12 @@
 
 import { cn } from '@/lib/utils';
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React from 'react';
+import { useLocation, Outlet } from 'react-router-dom';
 import RestaurantSidebar from './RestaurantSidebar';
 import Header from './Header';
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 const getPageTitle = (pathname: string): string => {
@@ -35,12 +35,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   const pageTitle = getPageTitle(location.pathname);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <RestaurantSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={pageTitle} />
         <main className="flex-1 overflow-auto p-6">
-          {children}
+          {children || <Outlet />}
         </main>
       </div>
     </div>
