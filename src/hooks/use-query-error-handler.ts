@@ -16,3 +16,10 @@ export function useQueryErrorHandler() {
   
   return { handleError };
 }
+
+// For backward compatibility with existing code
+export const queryErrorHandler = (error: Error) => {
+  console.error("Query error:", error);
+  // This function will be used as a fallback for existing code
+  // The useQueryErrorHandler hook should be preferred going forward
+};

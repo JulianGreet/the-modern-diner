@@ -69,3 +69,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+// Add this alias to maintain backward compatibility with existing code
+export const AuthContextProvider = AuthProvider;

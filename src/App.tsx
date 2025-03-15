@@ -14,18 +14,23 @@ import SettingsPage from '@/pages/SettingsPage';
 import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import OrderPage from '@/pages/OrderPage';
-import { AuthContextProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { queryErrorHandler } from '@/hooks/use-query-error-handler';
+import { useQueryErrorHandler } from '@/hooks/use-query-error-handler';
 
 import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      onError: queryErrorHandler,
+      meta: {
+        onError: () => {
+          const { handleError } = useQueryErrorHandler();
+          return handleError;
+        }
+      },
     },
   },
 });
@@ -33,14 +38,14 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContextProvider>
+      <AuthProvider>
         <ThemeProvider defaultTheme="light" storageKey="restaurant-theme">
           <Router>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/order/:restaurantId/:tableId" element={<OrderPage />} />
-              <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+              <Route element={<ProtectedRoute><MainLayout>Main content</MainLayout></ProtectedRoute>}>
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/orders" element={<OrdersPage />} />
@@ -54,7 +59,7 @@ function App() {
           </Router>
           <Toaster position="top-right" />
         </ThemeProvider>
-      </AuthContextProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
