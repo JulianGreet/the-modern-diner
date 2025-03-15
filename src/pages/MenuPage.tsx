@@ -129,9 +129,9 @@ const MenuPage: React.FC = () => {
                           </div>
                           <Badge 
                             variant="outline" 
-                            className={`${getCourseTypeColor(item.course_type)} text-xs capitalize`}
+                            className={`${getCourseTypeColor(item.courseType)} text-xs capitalize`}
                           >
-                            {item.course_type}
+                            {item.courseType}
                           </Badge>
                         </div>
                       </div>
@@ -142,7 +142,7 @@ const MenuPage: React.FC = () => {
                             {item.available ? "Available" : "Unavailable"}
                           </span>
                           <span className="mx-2 text-gray-300">•</span>
-                          <span>Prep time: {item.preparation_time} mins</span>
+                          <span>Prep time: {item.preparationTime} mins</span>
                         </div>
                         
                         <div className="flex gap-2">

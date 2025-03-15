@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,7 @@ import TableActionDialog from '@/components/tables/TableActionDialog';
 import { Table, TableStatus } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 import { fetchTables, updateTableStatus, assignServerToTable, updateCurrentOrder } from '@/services/supabase/tableService';
-import { LayoutGrid, Users, Circle, Ban } from 'lucide-react';
+import { LayoutGrid, Users, Circle, Ban, Clock } from 'lucide-react';
 
 const TablesPage: React.FC = () => {
   const [tables, setTables] = useState<Table[]>([]);
@@ -23,7 +22,6 @@ const TablesPage: React.FC = () => {
         setLoading(true);
         const tablesData = await fetchTables();
         
-        // Transform the data to match our frontend types
         const formattedTables = tablesData.map((table: any) => ({
           id: table.id,
           name: table.name,
@@ -114,8 +112,6 @@ const TablesPage: React.FC = () => {
 
   const handleCreateOrder = async (tableId: number) => {
     try {
-      // In a real app, this would create a new order in the orders table
-      // For now, we'll just update the table status to occupied and set a mock order ID
       const newOrderId = Math.floor(Math.random() * 1000) + 100;
       await updateCurrentOrder(tableId, newOrderId);
       await updateTableStatus(tableId, 'occupied');
@@ -142,7 +138,6 @@ const TablesPage: React.FC = () => {
     }
   };
 
-  // Count tables by status
   const availableTables = tables.filter(t => t.status === 'available').length;
   const occupiedTables = tables.filter(t => t.status === 'occupied').length;
   const reservedTables = tables.filter(t => t.status === 'reserved').length;
