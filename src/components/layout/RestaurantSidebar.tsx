@@ -46,7 +46,7 @@ const RestaurantSidebar = () => {
   const [collapsed, setCollapsed] = React.useState(false);
   
   const navItems = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/orders", label: "Orders", icon: ClipboardList },
     { to: "/menu", label: "Menu", icon: MenuSquare },
     { to: "/staff", label: "Staff", icon: Users },

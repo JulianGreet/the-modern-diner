@@ -11,6 +11,8 @@ import ReservationsPage from '@/pages/ReservationsPage';
 import StaffPage from '@/pages/StaffPage';
 import ReportsPage from '@/pages/ReportsPage';
 import SettingsPage from '@/pages/SettingsPage';
+import DashboardPage from '@/pages/DashboardPage';
+import SuperAdminPage from '@/pages/SuperAdminPage';
 import Index from '@/pages/Index';
 import NotFound from '@/pages/NotFound';
 import OrderPage from '@/pages/OrderPage';
@@ -48,7 +50,9 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/order/:restaurantId/:tableId" element={<OrderPage />} />
+              <Route path="/superadmin" element={<ProtectedRoute><SuperAdminPage /></ProtectedRoute>} />
               <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
+                <Route index path="/dashboard" element={<DashboardPage />} />
                 <Route path="/tables" element={<TablesPage />} />
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/orders" element={<OrdersPage />} />

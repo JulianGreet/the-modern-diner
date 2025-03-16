@@ -11,7 +11,9 @@ interface MainLayoutProps {
 
 const getPageTitle = (pathname: string): string => {
   switch (pathname) {
-    case '/':
+    case '/dashboard':
+      return 'Dashboard';
+    case '/tables':
       return 'Table Management';
     case '/orders':
       return 'Order Management';
@@ -26,7 +28,7 @@ const getPageTitle = (pathname: string): string => {
     case '/settings':
       return 'Settings';
     default:
-      return 'Restaurant Manager';
+      return 'Modern Diner';
   }
 };
 

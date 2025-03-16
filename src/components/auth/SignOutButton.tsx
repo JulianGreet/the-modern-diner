@@ -23,7 +23,8 @@ const SignOutButton: React.FC = () => {
         description: 'You have been successfully signed out.',
       });
       
-      navigate('/auth');
+      navigate('/');
+      // Redirect to home page after sign out
     } catch (error: any) {
       toast({
         title: 'Sign Out Failed',

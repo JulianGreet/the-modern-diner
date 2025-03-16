@@ -45,9 +45,9 @@ const AuthPage: React.FC = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    // If user is already logged in, redirect to home page
+    // If user is already logged in, redirect to dashboard
     if (user) {
-      navigate('/');
+      navigate('/dashboard');
     }
   }, [user, navigate]);
 

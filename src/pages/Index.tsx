@@ -11,7 +11,7 @@ const Index = () => {
   
   useEffect(() => {
     if (!isLoading && user) {
-      navigate("/tables");
+      navigate("/dashboard");
     }
   }, [navigate, user, isLoading]);
 
@@ -39,7 +39,7 @@ const Index = () => {
       {/* Hero Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center">
         <h1 className="text-5xl md:text-6xl font-bold text-restaurant-burgundy mb-6">
-          Restaurant Manager
+          Modern Diner
         </h1>
         <p className="text-xl md:text-2xl text-gray-700 mb-10 max-w-2xl">
           The complete solution for managing your restaurant operations, from table reservations to menu management.
