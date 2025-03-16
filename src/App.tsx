@@ -18,7 +18,6 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { queryErrorHandler } from '@/hooks/use-query-error-handler';
 
 import './App.css';
 
@@ -32,7 +31,7 @@ const queryClient = new QueryClient({
     mutations: {
       onError: (error) => {
         if (error instanceof Error) {
-          queryErrorHandler(error);
+          console.error("Mutation error:", error);
         }
       },
     },

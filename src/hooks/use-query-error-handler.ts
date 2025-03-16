@@ -21,8 +21,8 @@ export function useQueryErrorHandler() {
 export const queryErrorHandler = (error: Error) => {
   console.error("Query error:", error);
   
-  // Since we're outside a component context, we need to import and call toast directly
-  const { toast } = useToast();
+  // Importing and using toast outside of a component context requires this approach
+  const { toast } = require("@/hooks/use-toast");
   toast({
     title: "Error",
     description: `An error occurred: ${error.message || "Unknown error"}`,

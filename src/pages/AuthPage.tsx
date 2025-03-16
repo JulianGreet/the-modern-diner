@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +35,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const AuthPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>('login');
+  const location = useLocation();
+  // Initialize with 'login' or use state from navigation if available
+  const initialTab = location.state?.activeTab || 'login';
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -136,7 +139,7 @@ const AuthPage: React.FC = () => {
           <CardTitle className="text-2xl font-bold text-restaurant-burgundy">Restaurant Management System</CardTitle>
           <CardDescription>Sign in to your restaurant dashboard</CardDescription>
         </CardHeader>
-        <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
