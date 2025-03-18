@@ -19,12 +19,12 @@ const SignOutButton: React.FC = () => {
       }
       
       toast({
-        title: 'Signed Out',
-        description: 'You have been successfully signed out.',
+        title: 'Signed Out Successfully',
+        description: 'You have been logged out of your account.',
+        variant: 'default',
       });
       
       navigate('/');
-      // Redirect to home page after sign out
     } catch (error: any) {
       toast({
         title: 'Sign Out Failed',
@@ -37,7 +37,7 @@ const SignOutButton: React.FC = () => {
   return (
     <Button 
       variant="ghost" 
-      className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-muted" 
+      className="w-full justify-start text-muted-foreground hover:text-primary hover:bg-muted transition-colors" 
       onClick={handleSignOut}
     >
       <LogOut className="mr-2 h-4 w-4" />
