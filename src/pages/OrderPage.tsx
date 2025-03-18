@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems } from '@/services/supabase/menuService';
 import { getTableById } from '@/services/supabase/tableService';
+import { createOrder } from '@/services/supabase/orderService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -11,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Utensils, Search, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { formatPrice, getCourseTypeColor } from '@/components/menu/utils/menuUtils';
-import { MenuItem, Table } from '@/types/restaurant';
+import { MenuItem, Table, OrderItem, Order } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 
 interface CartItem extends MenuItem {
@@ -25,6 +26,7 @@ const OrderPage: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [table, setTable] = useState<Table | null>(null);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const { toast } = useToast();
   
   // Fetch menu items
@@ -58,7 +60,7 @@ const OrderPage: React.FC = () => {
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = searchTerm === '' || 
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+      item.description?.toLowerCase()?.includes(searchTerm.toLowerCase());
     
     const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
     
@@ -122,8 +124,40 @@ const OrderPage: React.FC = () => {
   // Place order
   const placeOrder = async () => {
     try {
-      // Here you would implement the order submission logic
-      // For now, we'll just show a success toast
+      if (!tableId || !restaurantId || cart.length === 0) {
+        toast({
+          title: 'Cannot Place Order',
+          description: 'Your cart is empty or table information is missing.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Convert cart items to order items
+      const orderItems: Omit<OrderItem, 'id'>[] = cart.map(item => ({
+        menuItemId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        specialRequests: item.specialRequests,
+        status: 'pending',
+        courseType: item.courseType,
+        startedAt: null,
+        completedAt: null
+      }));
+
+      // Create the order object
+      const newOrder: Omit<Order, 'id' | 'createdAt' | 'updatedAt'> = {
+        tableId: parseInt(tableId),
+        serverId: null, // Will be assigned by staff later
+        items: orderItems,
+        status: 'pending',
+        specialNotes: '',
+        isHighPriority: false
+      };
+
+      // Submit the order to the database
+      await createOrder(newOrder);
       
       toast({
         title: 'Order Placed Successfully',
@@ -132,6 +166,7 @@ const OrderPage: React.FC = () => {
       
       // Clear cart after successful order
       setCart([]);
+      setOrderPlaced(true);
     } catch (error) {
       console.error('Failed to place order:', error);
       toast({
@@ -141,6 +176,23 @@ const OrderPage: React.FC = () => {
       });
     }
   };
+
+  if (orderPlaced) {
+    return (
+      <div className="container max-w-5xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Order Placed!</h1>
+          <p className="text-lg text-gray-600 mb-8">Your order has been sent to the kitchen. Thank you!</p>
+          <Button 
+            onClick={() => setOrderPlaced(false)}
+            className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
+          >
+            Place Another Order
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="container max-w-5xl mx-auto px-4 py-8">

@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
-import { mockOrders } from '@/services/mockData';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchOrders, updateOrderStatus, updateOrderItemStatus } from '@/services/supabase/orderService';
 import { Order, OrderStatus } from '@/types/restaurant';
 import OrderGrid from '@/components/orders/OrderGrid';
 import { 
@@ -13,14 +14,22 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { ClipboardList, Timer, UtensilsCrossed, User } from 'lucide-react';
 
 const OrdersPage: React.FC = () => {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
-  const { toast } = useToast();
+  
+  // Fetch orders from the database
+  const { 
+    data: orders = [], 
+    isLoading, 
+    refetch: refetchOrders 
+  } = useQuery({
+    queryKey: ['orders'],
+    queryFn: fetchOrders
+  });
 
   const handleViewOrderDetails = (orderId: number) => {
     const order = orders.find(o => o.id === orderId) || null;
@@ -28,20 +37,35 @@ const OrdersPage: React.FC = () => {
     setOrderDialogOpen(true);
   };
 
-  const handleUpdateOrderStatus = (orderId: number, status: OrderStatus) => {
-    setOrders(prev => 
-      prev.map(order => {
-        if (order.id === orderId) {
-          return { ...order, status, updatedAt: new Date() };
-        }
-        return order;
-      })
-    );
-    
-    toast({
-      title: `Order #${orderId} Updated`,
-      description: `Status changed to ${status}`,
-    });
+  const handleUpdateOrderStatus = async (orderId: number, status: OrderStatus) => {
+    try {
+      await updateOrderStatus(orderId, status);
+      
+      // Update the order in the UI immediately
+      toast.success(`Order #${orderId} status updated to ${status}`);
+      
+      // Refetch orders to get the updated data
+      refetchOrders();
+      
+      // Close the dialog if it's open
+      if (orderDialogOpen && selectedOrder?.id === orderId) {
+        setOrderDialogOpen(false);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error('Failed to update order status');
+    }
+  };
+
+  const handleUpdateOrderItemStatus = async (itemId: number, status: OrderStatus) => {
+    try {
+      await updateOrderItemStatus(itemId, status);
+      toast.success(`Item status updated to ${status}`);
+      refetchOrders();
+    } catch (error) {
+      console.error('Error updating item status:', error);
+      toast.error('Failed to update item status');
+    }
   };
 
   return (
@@ -89,11 +113,17 @@ const OrdersPage: React.FC = () => {
         </Card>
       </div>
       
-      <OrderGrid 
-        orders={orders} 
-        onViewOrderDetails={handleViewOrderDetails}
-        onUpdateOrderStatus={handleUpdateOrderStatus}
-      />
+      {isLoading ? (
+        <div className="flex justify-center items-center py-12">
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      ) : (
+        <OrderGrid 
+          orders={orders} 
+          onViewOrderDetails={handleViewOrderDetails}
+          onUpdateOrderStatus={handleUpdateOrderStatus}
+        />
+      )}
       
       {selectedOrder && (
         <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
@@ -121,7 +151,7 @@ const OrdersPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium">Server</p>
-                  <p>#{selectedOrder.serverId}</p>
+                  <p>{selectedOrder.serverId ? `#${selectedOrder.serverId}` : 'Not assigned'}</p>
                 </div>
               </div>
               
@@ -151,14 +181,38 @@ const OrdersPage: React.FC = () => {
                           <td className="px-4 py-2 text-sm">{item.quantity}</td>
                           <td className="px-4 py-2 text-sm">${(item.price * item.quantity).toFixed(2)}</td>
                           <td className="px-4 py-2 text-sm">
-                            <Badge variant="outline" className={
-                              item.status === 'pending' ? 'border-yellow-500 text-yellow-500' :
-                              item.status === 'in-progress' ? 'border-blue-500 text-blue-500' :
-                              item.status === 'served' ? 'border-green-500 text-green-500' :
-                              'border-restaurant-success text-restaurant-success'
-                            }>
-                              {item.status}
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className={
+                                item.status === 'pending' ? 'border-yellow-500 text-yellow-500' :
+                                item.status === 'in-progress' ? 'border-blue-500 text-blue-500' :
+                                item.status === 'served' ? 'border-green-500 text-green-500' :
+                                'border-restaurant-success text-restaurant-success'
+                              }>
+                                {item.status}
+                              </Badge>
+                              
+                              {item.status === 'pending' && (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => handleUpdateOrderItemStatus(item.id, 'in-progress')}
+                                >
+                                  Start
+                                </Button>
+                              )}
+                              
+                              {item.status === 'in-progress' && (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-7 px-2 text-xs"
+                                  onClick={() => handleUpdateOrderItemStatus(item.id, 'completed')}
+                                >
+                                  Complete
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
