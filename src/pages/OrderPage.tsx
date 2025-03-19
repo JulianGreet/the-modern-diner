@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems } from '@/services/supabase/menuService';
 import { getTableById } from '@/services/supabase/tableService';
@@ -9,9 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Utensils, Search, Plus, Minus, ShoppingCart } from 'lucide-react';
+import { Utensils, Search, Plus, Minus, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { formatPrice, getCourseTypeColor } from '@/components/menu/utils/menuUtils';
-import { MenuItem, Table, OrderItem, Order, OrderStatus } from '@/types/restaurant';
+import { MenuItem, Table, OrderItem, Order, OrderStatus, CourseType } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 
 interface CartItem extends MenuItem {
@@ -26,7 +26,9 @@ const OrderPage: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [table, setTable] = useState<Table | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
     queryKey: ['menuItems'],
@@ -114,12 +116,15 @@ const OrderPage: React.FC = () => {
   
   const placeOrder = async () => {
     try {
+      setIsPlacingOrder(true);
+      
       if (!tableId || !restaurantId || cart.length === 0) {
         toast({
           title: 'Cannot Place Order',
           description: 'Your cart is empty or table information is missing.',
           variant: 'destructive'
         });
+        setIsPlacingOrder(false);
         return;
       }
 
@@ -130,7 +135,7 @@ const OrderPage: React.FC = () => {
         quantity: item.quantity,
         specialRequests: item.specialRequests,
         status: 'pending' as OrderStatus,
-        courseType: item.courseType,
+        courseType: item.courseType as CourseType,
         startedAt: null,
         completedAt: null
       }));
@@ -153,6 +158,7 @@ const OrderPage: React.FC = () => {
       
       setCart([]);
       setOrderPlaced(true);
+      setIsPlacingOrder(false);
     } catch (error) {
       console.error('Failed to place order:', error);
       toast({
@@ -160,6 +166,7 @@ const OrderPage: React.FC = () => {
         description: 'Could not place your order. Please try again.',
         variant: 'destructive'
       });
+      setIsPlacingOrder(false);
     }
   };
 
@@ -169,12 +176,22 @@ const OrderPage: React.FC = () => {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">Order Placed!</h1>
           <p className="text-lg text-gray-600 mb-8">Your order has been sent to the kitchen. Thank you!</p>
-          <Button 
-            onClick={() => setOrderPlaced(false)}
-            className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
-          >
-            Place Another Order
-          </Button>
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
+            <Button 
+              onClick={() => setOrderPlaced(false)}
+              className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
+            >
+              Place Another Order
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/dashboard')}
+              className="border-restaurant-burgundy text-restaurant-burgundy hover:bg-restaurant-burgundy/10"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Return to Dashboard
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -350,9 +367,22 @@ const OrderPage: React.FC = () => {
                     <Button 
                       className="w-full mt-4 bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
                       onClick={placeOrder}
+                      disabled={isPlacingOrder}
                     >
-                      <Utensils className="mr-2 h-4 w-4" />
-                      Place Order
+                      {isPlacingOrder ? (
+                        <span className="flex items-center">
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Processing...
+                        </span>
+                      ) : (
+                        <>
+                          <Utensils className="mr-2 h-4 w-4" />
+                          Place Order
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

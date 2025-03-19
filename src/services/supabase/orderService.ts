@@ -29,12 +29,12 @@ export async function fetchOrders() {
         price: item.price || 0,
         quantity: item.quantity,
         specialRequests: item.special_requests || '',
-        status: item.status,
+        status: item.status as OrderStatus,
         courseType: item.course_type,
         startedAt: item.started_at ? new Date(item.started_at) : null,
         completedAt: item.completed_at ? new Date(item.completed_at) : null
       })),
-      status: order.status,
+      status: order.status as OrderStatus,
       createdAt: new Date(order.created_at),
       updatedAt: new Date(order.updated_at),
       specialNotes: order.special_notes || '',
@@ -48,6 +48,9 @@ export async function fetchOrders() {
 export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
   // Convert serverId from number to string if it exists
   const serverIdAsString = order.serverId ? String(order.serverId) : null;
+  
+  // Log the order being created to help debugging
+  console.log('Creating order with data:', JSON.stringify(order, null, 2));
   
   const { data, error } = await supabase
     .from('orders')
@@ -67,7 +70,7 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
     throw error;
   }
   
-  // Insert order items
+  // Insert order items with complete details
   if (order.items.length > 0) {
     const orderItems = order.items.map(item => ({
       order_id: data.id,
@@ -79,6 +82,8 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
       status: item.status,
       course_type: item.courseType
     }));
+    
+    console.log('Creating order items with data:', JSON.stringify(orderItems, null, 2));
     
     const { error: itemsError } = await supabase
       .from('order_items')
