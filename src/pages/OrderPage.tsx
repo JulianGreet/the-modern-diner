@@ -8,7 +8,7 @@ import { createOrder } from '@/services/supabase/orderService';
 import { MenuItem, Table, OrderItem, Order, OrderStatus, CourseType } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 
-// Import new components
+// Import components
 import TableInfo from '@/components/orders/TableInfo';
 import MenuSection from '@/components/orders/MenuSection';
 import CartSection from '@/components/orders/CartSection';
@@ -25,6 +25,7 @@ const OrderPage: React.FC = () => {
   const [table, setTable] = useState<Table | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<CartItem[]>([]);
   const { toast } = useToast();
   
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
@@ -113,6 +114,9 @@ const OrderPage: React.FC = () => {
         return;
       }
 
+      // Store a copy of the current cart for the receipt
+      setCompletedOrder([...cart]);
+
       const orderItems = cart.map(item => ({
         menuItemId: item.id,
         name: item.name,
@@ -157,7 +161,13 @@ const OrderPage: React.FC = () => {
 
   // Render the order success screen if order is placed
   if (orderPlaced) {
-    return <OrderSuccess onNewOrder={() => setOrderPlaced(false)} />;
+    return <OrderSuccess 
+      onNewOrder={() => {
+        setOrderPlaced(false);
+        setCompletedOrder([]);
+      }}
+      orderItems={completedOrder}
+    />;
   }
   
   return (
