@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,8 @@ import {
   AlertTriangle, 
   CheckCircle2, 
   ChevronsRight,
-  MoreHorizontal 
+  MoreHorizontal,
+  Utensils
 } from 'lucide-react';
 
 interface OrderCardProps {
@@ -101,6 +103,10 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onUpdateSta
   const totalAmount = order.items.reduce((total, item) => total + (item.price * item.quantity), 0);
   const timeElapsed = formatDistanceToNow(new Date(order.createdAt), { addSuffix: true });
   
+  // Get a summary of items for display
+  const itemsSummary = order.items.slice(0, 2).map(item => item.name).join(', ');
+  const hasMoreItems = order.items.length > 2;
+  
   return (
     <Card className={cn(
       "w-full",
@@ -112,7 +118,7 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onUpdateSta
           <div>
             <CardTitle className="text-base">Order #{order.id}</CardTitle>
             <div className="text-sm text-muted-foreground mt-1">
-              Table #{order.tableId} • Server #{order.serverId}
+              Table #{order.tableId} {order.serverId && `• Server #${order.serverId}`}
             </div>
           </div>
           <Badge className={getStatusColor(order.status)}>
@@ -121,6 +127,13 @@ const OrderCard: React.FC<OrderCardProps> = ({ order, onViewDetails, onUpdateSta
         </div>
       </CardHeader>
       <CardContent className="pb-2">
+        <div className="text-sm mb-2">
+          <div className="flex items-center">
+            <Utensils className="h-4 w-4 mr-1 text-muted-foreground" />
+            <span className="line-clamp-1">{itemsSummary}{hasMoreItems ? '...' : ''}</span>
+          </div>
+        </div>
+        
         <div className="flex justify-between text-sm mb-2">
           <span>{totalItems} items</span>
           <span className="font-medium">${totalAmount.toFixed(2)}</span>

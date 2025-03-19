@@ -9,6 +9,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle,
+  DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -153,6 +154,9 @@ const OrdersPage: React.FC = () => {
                   {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
                 </Badge>
               </DialogTitle>
+              <DialogDescription>
+                Placed: {new Date(selectedOrder.createdAt).toLocaleString()}
+              </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">

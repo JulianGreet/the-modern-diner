@@ -25,7 +25,7 @@ export async function fetchOrders() {
       items: order.order_items.map((item: any) => ({
         id: item.id,
         menuItemId: item.menu_item_id,
-        name: item.name || 'Unknown Item', // We'll need to join with menu_items to get the name
+        name: item.name || 'Unknown Item',
         price: item.price || 0,
         quantity: item.quantity,
         specialRequests: item.special_requests || '',
@@ -72,6 +72,8 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
     const orderItems = order.items.map(item => ({
       order_id: data.id,
       menu_item_id: item.menuItemId,
+      name: item.name,
+      price: item.price,
       quantity: item.quantity,
       special_requests: item.specialRequests,
       status: item.status,
