@@ -1,18 +1,18 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMenuItems } from '@/services/supabase/menuService';
 import { getTableById } from '@/services/supabase/tableService';
 import { createOrder } from '@/services/supabase/orderService';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Utensils, Search, Plus, Minus, ShoppingCart, ArrowLeft } from 'lucide-react';
-import { formatPrice, getCourseTypeColor } from '@/components/menu/utils/menuUtils';
 import { MenuItem, Table, OrderItem, Order, OrderStatus, CourseType } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
+
+// Import new components
+import TableInfo from '@/components/orders/TableInfo';
+import MenuSection from '@/components/orders/MenuSection';
+import CartSection from '@/components/orders/CartSection';
+import OrderSuccess from '@/components/orders/OrderSuccess';
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -21,14 +21,11 @@ interface CartItem extends MenuItem {
 
 const OrderPage: React.FC = () => {
   const { restaurantId, tableId } = useParams<{ restaurantId: string; tableId: string }>();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [table, setTable] = useState<Table | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
     queryKey: ['menuItems'],
@@ -54,18 +51,6 @@ const OrderPage: React.FC = () => {
     
     loadTable();
   }, [tableId, toast]);
-  
-  const filteredItems = menuItems.filter(item => {
-    const matchesSearch = searchTerm === '' || 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description?.toLowerCase()?.includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
-    
-    return matchesSearch && matchesCategory && item.available;
-  });
-  
-  const categories = ['all', ...new Set(menuItems.map(item => item.category))];
   
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -112,7 +97,7 @@ const OrderPage: React.FC = () => {
     );
   };
   
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const clearCart = () => setCart([]);
   
   const placeOrder = async () => {
     try {
@@ -170,225 +155,32 @@ const OrderPage: React.FC = () => {
     }
   };
 
+  // Render the order success screen if order is placed
   if (orderPlaced) {
-    return (
-      <div className="container max-w-5xl mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Order Placed!</h1>
-          <p className="text-lg text-gray-600 mb-8">Your order has been sent to the kitchen. Thank you!</p>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 justify-center">
-            <Button 
-              onClick={() => setOrderPlaced(false)}
-              className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
-            >
-              Place Another Order
-            </Button>
-            <Button 
-              variant="outline"
-              onClick={() => navigate('/dashboard')}
-              className="border-restaurant-burgundy text-restaurant-burgundy hover:bg-restaurant-burgundy/10"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Return to Dashboard
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <OrderSuccess onNewOrder={() => setOrderPlaced(false)} />;
   }
   
   return (
     <div className="container max-w-5xl mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Place Your Order</h1>
-        {table && (
-          <p className="text-lg text-gray-600 mt-2">
-            Table {table.name} • Seats {table.capacity}
-          </p>
-        )}
-      </div>
+      <TableInfo table={table} />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
-          <div className="bg-white rounded-lg border shadow-sm overflow-hidden mb-6">
-            <div className="border-b p-4 flex justify-between items-center">
-              <h3 className="font-medium">Menu</h3>
-              
-              <div className="relative w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="text"
-                  placeholder="Search menu..." 
-                  className="pl-8 h-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <Tabs value={activeCategory} onValueChange={setActiveCategory}>
-              <div className="border-b px-4">
-                <TabsList className="bg-transparent h-12">
-                  {categories.map(category => (
-                    <TabsTrigger 
-                      key={category} 
-                      value={category}
-                      className="data-[state=active]:bg-restaurant-burgundy/10 data-[state=active]:text-restaurant-burgundy data-[state=active]:shadow-none capitalize"
-                    >
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </div>
-              
-              <TabsContent value={activeCategory} className="p-0 mt-0">
-                {filteredItems.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    {searchTerm ? "No items match your search" : "No menu items found in this category"}
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {filteredItems.map(item => (
-                      <div key={item.id} className="p-4 flex items-center hover:bg-gray-50">
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-medium text-gray-900">{item.name}</h4>
-                              <p className="text-sm text-gray-500 line-clamp-2">{item.description}</p>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium text-gray-900">
-                                {formatPrice(item.price)}
-                              </div>
-                              <Badge 
-                                variant="outline" 
-                                className={`${getCourseTypeColor(item.courseType)} text-xs capitalize`}
-                              >
-                                {item.courseType}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-2 flex justify-end">
-                            <Button 
-                              size="sm" 
-                              className="bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
-                              onClick={() => addToCart(item)}
-                            >
-                              <Plus className="mr-1 h-3.5 w-3.5" />
-                              Add to Order
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
+          <MenuSection 
+            menuItems={menuItems} 
+            addToCart={addToCart}
+          />
         </div>
         
         <div>
-          <Card className="sticky top-4">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-medium flex items-center">
-                  <ShoppingCart className="mr-2 h-4 w-4" />
-                  Your Order
-                </h3>
-                {cart.length > 0 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 text-xs"
-                    onClick={() => setCart([])}
-                  >
-                    Clear All
-                  </Button>
-                )}
-              </div>
-              
-              {cart.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  Your order is empty. Add items from the menu.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {cart.map(item => (
-                    <div key={item.id} className="border-b pb-4">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{item.name}</span>
-                        <span>{formatPrice(item.price * item.quantity)}</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center border rounded-md">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0"
-                            onClick={() => updateQuantity(item.id, -1)}
-                          >
-                            <Minus className="h-3.5 w-3.5" />
-                          </Button>
-                          <span className="w-8 text-center">{item.quantity}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0"
-                            onClick={() => updateQuantity(item.id, 1)}
-                          >
-                            <Plus className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                        
-                        <span className="text-sm">{formatPrice(item.price)} each</span>
-                      </div>
-                      
-                      <div className="mt-2">
-                        <Input 
-                          type="text"
-                          placeholder="Special requests..."
-                          className="text-sm h-8"
-                          value={item.specialRequests}
-                          onChange={(e) => updateSpecialRequests(item.id, e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <div className="border-t pt-4">
-                    <div className="flex justify-between font-medium">
-                      <span>Total</span>
-                      <span>{formatPrice(total)}</span>
-                    </div>
-                    
-                    <Button 
-                      className="w-full mt-4 bg-restaurant-burgundy hover:bg-restaurant-burgundy/90"
-                      onClick={placeOrder}
-                      disabled={isPlacingOrder}
-                    >
-                      {isPlacingOrder ? (
-                        <span className="flex items-center">
-                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          Processing...
-                        </span>
-                      ) : (
-                        <>
-                          <Utensils className="mr-2 h-4 w-4" />
-                          Place Order
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <CartSection 
+            cart={cart}
+            updateQuantity={updateQuantity}
+            updateSpecialRequests={updateSpecialRequests}
+            clearCart={clearCart}
+            placeOrder={placeOrder}
+            isPlacingOrder={isPlacingOrder}
+          />
         </div>
       </div>
     </div>
@@ -396,4 +188,3 @@ const OrderPage: React.FC = () => {
 };
 
 export default OrderPage;
-
