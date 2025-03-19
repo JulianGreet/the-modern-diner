@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Utensils, Search, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { formatPrice, getCourseTypeColor } from '@/components/menu/utils/menuUtils';
-import { MenuItem, Table, OrderItem, Order } from '@/types/restaurant';
+import { MenuItem, Table, OrderItem, Order, OrderStatus } from '@/types/restaurant';
 import { useToast } from '@/hooks/use-toast';
 
 interface CartItem extends MenuItem {
@@ -29,13 +28,11 @@ const OrderPage: React.FC = () => {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const { toast } = useToast();
   
-  // Fetch menu items
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
     queryKey: ['menuItems'],
     queryFn: fetchMenuItems
   });
 
-  // Fetch table information
   useEffect(() => {
     const loadTable = async () => {
       try {
@@ -56,7 +53,6 @@ const OrderPage: React.FC = () => {
     loadTable();
   }, [tableId, toast]);
   
-  // Filter menu items by search term and category
   const filteredItems = menuItems.filter(item => {
     const matchesSearch = searchTerm === '' || 
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -67,10 +63,8 @@ const OrderPage: React.FC = () => {
     return matchesSearch && matchesCategory && item.available;
   });
   
-  // Get unique categories
   const categories = ['all', ...new Set(menuItems.map(item => item.category))];
   
-  // Add item to cart
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
       const existingItem = prev.find(cartItem => cartItem.id === item.id);
@@ -92,7 +86,6 @@ const OrderPage: React.FC = () => {
     });
   };
   
-  // Update item quantity in cart
   const updateQuantity = (itemId: number, change: number) => {
     setCart(prev => {
       const updatedCart = prev.map(item => {
@@ -107,7 +100,6 @@ const OrderPage: React.FC = () => {
     });
   };
   
-  // Update special requests for an item
   const updateSpecialRequests = (itemId: number, requests: string) => {
     setCart(prev => 
       prev.map(item => 
@@ -118,10 +110,8 @@ const OrderPage: React.FC = () => {
     );
   };
   
-  // Calculate total
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   
-  // Place order
   const placeOrder = async () => {
     try {
       if (!tableId || !restaurantId || cart.length === 0) {
@@ -133,30 +123,27 @@ const OrderPage: React.FC = () => {
         return;
       }
 
-      // Convert cart items to order items
-      const orderItems: Omit<OrderItem, 'id'>[] = cart.map(item => ({
+      const orderItems = cart.map(item => ({
         menuItemId: item.id,
         name: item.name,
         price: item.price,
         quantity: item.quantity,
         specialRequests: item.specialRequests,
-        status: 'pending',
+        status: 'pending' as OrderStatus,
         courseType: item.courseType,
         startedAt: null,
         completedAt: null
       }));
 
-      // Create the order object
       const newOrder: Omit<Order, 'id' | 'createdAt' | 'updatedAt'> = {
         tableId: parseInt(tableId),
-        serverId: null, // Will be assigned by staff later
-        items: orderItems,
-        status: 'pending',
+        serverId: null,
+        items: orderItems as OrderItem[],
+        status: 'pending' as OrderStatus,
         specialNotes: '',
         isHighPriority: false
       };
 
-      // Submit the order to the database
       await createOrder(newOrder);
       
       toast({
@@ -164,7 +151,6 @@ const OrderPage: React.FC = () => {
         description: `Your order for Table ${table?.name} has been sent to the kitchen.`,
       });
       
-      // Clear cart after successful order
       setCart([]);
       setOrderPlaced(true);
     } catch (error) {
@@ -380,3 +366,4 @@ const OrderPage: React.FC = () => {
 };
 
 export default OrderPage;
+

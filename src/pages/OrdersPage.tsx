@@ -23,7 +23,7 @@ const OrdersPage: React.FC = () => {
   
   // Fetch orders from the database
   const { 
-    data: orders = [], 
+    data: ordersData = [], 
     isLoading, 
     refetch: refetchOrders 
   } = useQuery({
@@ -31,10 +31,22 @@ const OrdersPage: React.FC = () => {
     queryFn: fetchOrders
   });
 
+  // Ensure all orders have the correct type for status
+  const orders: Order[] = ordersData.map(order => ({
+    ...order,
+    status: order.status as OrderStatus,
+    items: order.items.map(item => ({
+      ...item,
+      status: item.status as OrderStatus
+    }))
+  }));
+
   const handleViewOrderDetails = (orderId: number) => {
     const order = orders.find(o => o.id === orderId) || null;
-    setSelectedOrder(order);
-    setOrderDialogOpen(true);
+    if (order) {
+      setSelectedOrder(order);
+      setOrderDialogOpen(true);
+    }
   };
 
   const handleUpdateOrderStatus = async (orderId: number, status: OrderStatus) => {
