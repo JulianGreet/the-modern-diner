@@ -25,7 +25,6 @@ const OrderPage: React.FC = () => {
   const [table, setTable] = useState<Table | null>(null);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [completedOrderItems, setCompletedOrderItems] = useState<OrderItem[]>([]);
   const { toast } = useToast();
   
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
@@ -114,7 +113,6 @@ const OrderPage: React.FC = () => {
         return;
       }
 
-      // Create an array of order items from cart items
       const orderItems = cart.map(item => ({
         menuItemId: item.id,
         name: item.name,
@@ -136,10 +134,6 @@ const OrderPage: React.FC = () => {
         isHighPriority: false
       };
 
-      // Save the completed order items to display in the receipt
-      setCompletedOrderItems(orderItems as OrderItem[]);
-
-      // Create the order in the database
       await createOrder(newOrder);
       
       toast({
@@ -147,7 +141,7 @@ const OrderPage: React.FC = () => {
         description: `Your order for Table ${table?.name} has been sent to the kitchen.`,
       });
       
-      // Clear the cart and show success screen
+      setCart([]);
       setOrderPlaced(true);
       setIsPlacingOrder(false);
     } catch (error) {
@@ -161,22 +155,9 @@ const OrderPage: React.FC = () => {
     }
   };
 
-  // Start a new order from the success screen
-  const handleNewOrder = () => {
-    setOrderPlaced(false);
-    setCompletedOrderItems([]);
-    setCart([]);
-  };
-
   // Render the order success screen if order is placed
   if (orderPlaced) {
-    return (
-      <OrderSuccess 
-        onNewOrder={handleNewOrder} 
-        orderItems={completedOrderItems}
-        tableNumber={table?.name}
-      />
-    );
+    return <OrderSuccess onNewOrder={() => setOrderPlaced(false)} />;
   }
   
   return (
