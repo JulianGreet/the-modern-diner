@@ -2,11 +2,31 @@
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem } from "@/types/restaurant";
 
-export async function fetchMenuItems() {
-  const { data, error } = await supabase
+export async function fetchMenuItems(restaurantId?: string) {
+  let query = supabase
     .from('menu_items')
     .select('*')
-    .order('category');
+    .order('category')
+    .eq('available', true);
+  
+  // If restaurantId is provided, use it directly (public access)
+  // Otherwise, try to get the authenticated user's ID (admin access)
+  if (restaurantId) {
+    query = query
+      .eq('restaurant_id', restaurantId)
+      .eq('available', true);
+  } else {
+    const { data: user } = await supabase.auth.getUser();
+    if (user.user?.id) {
+      query = query
+      .eq('restaurant_id', user.user.id)
+      .eq('available', true);
+    } else {
+      throw new Error('No restaurant ID provided and no authenticated user found');
+    }
+  }
+  
+  const { data, error } = await query;
   
   if (error) {
     console.error('Error fetching menu items:', error);

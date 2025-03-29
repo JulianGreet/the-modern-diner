@@ -119,7 +119,7 @@ export async function deleteTable(tableId: number) {
   return true;
 }
 
-export async function getTableById(tableId: number) {
+export async function getTableById(tableId: number, restaurantId?: string) {
   const { data, error } = await supabase
     .from('tables')
     .select('*')
@@ -131,6 +131,12 @@ export async function getTableById(tableId: number) {
     throw error;
   }
   
+  // If restaurantId is provided, validate that the table belongs to the restaurant
+  if (restaurantId && data.restaurant_id !== restaurantId) {
+    console.error('Table does not belong to the specified restaurant');
+    throw new Error('Table not found or invalid');
+  }
+  
   return {
     id: data.id,
     name: data.name,
@@ -139,6 +145,34 @@ export async function getTableById(tableId: number) {
     size: data.size as TableSize,
     combinedWith: data.combined_with || null,
     assignedServer: data.assigned_server,
-    currentOrder: data.current_order
+    currentOrder: data.current_order,
+    restaurantId: data.restaurant_id
   } as Table;
+}
+
+/**
+ * Validates that a table belongs to a specific restaurant
+ * This function can be used for public ordering without requiring authentication
+ * @param tableId The ID of the table to validate
+ * @param restaurantId The ID of the restaurant to validate against
+ * @returns True if the table belongs to the restaurant, false otherwise
+ */
+export async function validateTableRestaurant(tableId: number, restaurantId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('tables')
+      .select('restaurant_id')
+      .eq('id', tableId)
+      .single();
+    
+    if (error) {
+      console.error('Error validating table:', error);
+      return false;
+    }
+    
+    return data.restaurant_id === restaurantId;
+  } catch (error) {
+    console.error('Error validating table-restaurant relationship:', error);
+    return false;
+  }
 }

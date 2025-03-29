@@ -7,7 +7,23 @@ export async function fetchOrders() {
     .from('orders')
     .select(`
       *,
-      order_items:order_items(*)
+      order_items:order_items(
+        menu_item_id,
+        quantity,
+        special_requests,
+        status,
+        course_type,
+        started_at,
+        completed_at,
+        menu_items:menu_items(
+          name,
+          description,
+          price,
+          course_type,
+          preparation_time,
+          available
+        )
+      )
     `)
     .order('created_at', { ascending: false });
   
@@ -16,7 +32,8 @@ export async function fetchOrders() {
     throw error;
   }
   
-  // Transform Supabase data format to match our frontend types
+  // Transform joined Supabase data to frontend types
+  console.log('Raw orders data from DB:', data);
   const orders = data.map(order => {
     return {
       id: order.id,
@@ -25,8 +42,11 @@ export async function fetchOrders() {
       items: order.order_items.map((item: any) => ({
         id: item.id,
         menuItemId: item.menu_item_id,
-        name: item.name || 'Unknown Item',
-        price: item.price || 0,
+        name: item.menu_items?.name || '[MENU ITEM NOT FOUND]',
+        description: item.menu_items?.description || '',
+        price: item.menu_items?.price || 0,
+        preparationTime: item.menu_items?.preparation_time || 0,
+        available: item.menu_items?.available ?? false,
         quantity: item.quantity,
         specialRequests: item.special_requests || '',
         status: item.status as OrderStatus,
@@ -45,17 +65,31 @@ export async function fetchOrders() {
   return orders;
 }
 
-export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>) {
+export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updatedAt'>, restaurantId?: string) {
   // Convert serverId from number to string if it exists
   const serverIdAsString = order.serverId ? String(order.serverId) : null;
   
   // Log the order being created to help debugging
   console.log('Creating order with data:', JSON.stringify(order, null, 2));
   
+  // Determine restaurant ID - either from parameter or authenticated user
+  let restaurant_id: string | undefined;
+  
+  if (restaurantId) {
+    restaurant_id = restaurantId;
+  } else {
+    const { data: user } = await supabase.auth.getUser();
+    restaurant_id = user.user?.id;
+  }
+  
+  if (!restaurant_id) {
+    throw new Error('No restaurant ID provided and no authenticated user found');
+  }
+  
   const { data, error } = await supabase
     .from('orders')
     .insert({
-      restaurant_id: (await supabase.auth.getUser()).data.user?.id,
+      restaurant_id,
       table_id: order.tableId,
       server_id: serverIdAsString,
       status: order.status,
@@ -75,8 +109,6 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'updat
     const orderItems = order.items.map(item => ({
       order_id: data.id,
       menu_item_id: item.menuItemId,
-      name: item.name,
-      price: item.price,
       quantity: item.quantity,
       special_requests: item.specialRequests,
       status: item.status,

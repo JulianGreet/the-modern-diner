@@ -90,14 +90,7 @@ const OrderSuccess: React.FC<OrderSuccessProps> = ({ onNewOrder, orderItems = []
         >
           Place Another Order
         </Button>
-        <Button 
-          variant="outline"
-          onClick={() => navigate('/dashboard')}
-          className="border-restaurant-burgundy text-restaurant-burgundy hover:bg-restaurant-burgundy/10"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Return to Dashboard
-        </Button>
+        
       </div>
     </div>
   );

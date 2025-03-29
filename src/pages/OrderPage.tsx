@@ -29,8 +29,9 @@ const OrderPage: React.FC = () => {
   const { toast } = useToast();
   
   const { data: menuItems = [], isLoading: menuLoading } = useQuery({
-    queryKey: ['menuItems'],
-    queryFn: fetchMenuItems
+    queryKey: ['menuItems', restaurantId],
+    queryFn: () => fetchMenuItems(restaurantId),
+    enabled: !!restaurantId
   });
 
   useEffect(() => {
@@ -138,7 +139,7 @@ const OrderPage: React.FC = () => {
         isHighPriority: false
       };
 
-      await createOrder(newOrder);
+      await createOrder(newOrder, restaurantId);
       
       toast({
         title: 'Order Placed Successfully',

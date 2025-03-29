@@ -30,7 +30,9 @@ const MenuPage: React.FC = () => {
 
   const { data: menuItems = [], isLoading, error } = useQuery({
     queryKey: ['menuItems'],
-    queryFn: fetchMenuItems
+    queryFn: () => fetchMenuItems(),
+    staleTime: 0,
+    retry: 2
   });
 
   // Filter menu items by search term and category
@@ -46,6 +48,17 @@ const MenuPage: React.FC = () => {
 
   // Get unique categories
   const categories = ['all', ...new Set(menuItems.map(item => item.category))];
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-red-500">
+        <p>Failed to load menu items</p>
+        <Button variant="outline" className="mt-2" onClick={() => window.location.reload()}>
+          Retry
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <div className="text-center p-8">Loading menu data...</div>;
