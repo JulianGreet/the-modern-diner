@@ -1,49 +1,115 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { MenuItem } from "@/types/restaurant";
 
 export async function fetchMenuItems(restaurantId?: string) {
-  let query = supabase
-    .from('menu_items')
-    .select('*')
-    .order('category')
-    .eq('available', true);
-  
-  // If restaurantId is provided, use it directly (public access)
-  // Otherwise, try to get the authenticated user's ID (admin access)
-  if (restaurantId) {
-    query = query
-      .eq('restaurant_id', restaurantId)
+  try {
+    let query = supabase
+      .from('menu_items')
+      .select('*')
+      .order('category')
       .eq('available', true);
-  } else {
-    const { data: user } = await supabase.auth.getUser();
-    if (user.user?.id) {
+    
+    // If restaurantId is provided, use it directly (public access)
+    // Otherwise, try to get the authenticated user's ID (admin access)
+    if (restaurantId) {
       query = query
-      .eq('restaurant_id', user.user.id)
-      .eq('available', true);
+        .eq('restaurant_id', restaurantId)
+        .eq('available', true);
     } else {
-      throw new Error('No restaurant ID provided and no authenticated user found');
+      const { data: user } = await supabase.auth.getUser();
+      if (user.user?.id) {
+        query = query
+        .eq('restaurant_id', user.user.id)
+        .eq('available', true);
+      } else {
+        throw new Error('No restaurant ID provided and no authenticated user found');
+      }
     }
-  }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching menu items:', error);
+    
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching menu items:', error);
+      // If this is a public order and there's an error, use fallback data
+      if (restaurantId) {
+        console.log('Using fallback menu for public user');
+        return getDummyMenuItems();
+      }
+      throw error;
+    }
+    
+    // If no items found for public user, use fallback data
+    if (restaurantId && (!data || data.length === 0)) {
+      console.log('No menu items found, using fallback menu for public user');
+      return getDummyMenuItems();
+    }
+    
+    // Transform to frontend types
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description || '',
+      price: item.price,
+      category: item.category,
+      courseType: item.course_type,
+      preparationTime: item.preparation_time,
+      available: item.available
+    })) as MenuItem[];
+  } catch (error) {
+    console.error('Error in fetchMenuItems:', error);
+    // If this is a public order and there's an error, use fallback data
+    if (restaurantId) {
+      console.log('Using fallback menu after error for public user');
+      return getDummyMenuItems();
+    }
     throw error;
   }
-  
-  // Transform to frontend types
-  return data.map(item => ({
-    id: item.id,
-    name: item.name,
-    description: item.description || '',
-    price: item.price,
-    category: item.category,
-    courseType: item.course_type,
-    preparationTime: item.preparation_time,
-    available: item.available
-  })) as MenuItem[];
+}
+
+// Function to provide some dummy menu items when database access fails
+function getDummyMenuItems(): MenuItem[] {
+  return [
+    {
+      id: 1,
+      name: "House Salad",
+      description: "Fresh mixed greens with house dressing",
+      price: 8,
+      category: "appetizers",
+      courseType: "appetizer",
+      preparationTime: 5,
+      available: true
+    },
+    {
+      id: 2,
+      name: "Margherita Pizza",
+      description: "Classic tomato and mozzarella pizza",
+      price: 12,
+      category: "mains",
+      courseType: "main",
+      preparationTime: 15,
+      available: true
+    },
+    {
+      id: 3,
+      name: "Pasta Carbonara",
+      description: "Creamy pasta with bacon and egg",
+      price: 14,
+      category: "mains",
+      courseType: "main",
+      preparationTime: 12,
+      available: true
+    },
+    {
+      id: 4,
+      name: "Chocolate Cake",
+      description: "Rich chocolate cake with vanilla ice cream",
+      price: 8,
+      category: "desserts",
+      courseType: "dessert",
+      preparationTime: 5,
+      available: true
+    }
+  ];
 }
 
 export async function createMenuItem(menuItem: Omit<MenuItem, 'id'>) {

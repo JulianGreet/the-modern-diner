@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchOrders, updateOrderStatus, updateOrderItemStatus } from '@/services/supabase/orderService';
 import { Order, OrderStatus } from '@/types/restaurant';
 import OrderGrid from '@/components/orders/OrderGrid';
+import PendingPublicOrders from '@/components/orders/PendingPublicOrders';
 import { 
   Dialog, 
   DialogContent, 
@@ -87,6 +87,9 @@ const OrdersPage: React.FC = () => {
         <h1 className="text-2xl font-bold">Order Management</h1>
         <Button>Create New Order</Button>
       </div>
+      
+      {/* Component for syncing pending public orders */}
+      <PendingPublicOrders />
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>

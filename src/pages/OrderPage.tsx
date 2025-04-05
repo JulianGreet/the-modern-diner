@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -37,8 +36,8 @@ const OrderPage: React.FC = () => {
   useEffect(() => {
     const loadTable = async () => {
       try {
-        if (tableId) {
-          const tableData = await getTableById(parseInt(tableId));
+        if (tableId && restaurantId) {
+          const tableData = await getTableById(parseInt(tableId), restaurantId);
           setTable(tableData);
         }
       } catch (error) {
@@ -52,7 +51,7 @@ const OrderPage: React.FC = () => {
     };
     
     loadTable();
-  }, [tableId, toast]);
+  }, [tableId, restaurantId, toast]);
   
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -139,6 +138,7 @@ const OrderPage: React.FC = () => {
         isHighPriority: false
       };
 
+      // Always pass the restaurantId for public orders
       await createOrder(newOrder, restaurantId);
       
       toast({
